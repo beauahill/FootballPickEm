@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-8e22db6d-c32b-46ac-959a-99c6264d10cd/styles.css">
+  <script src="_ds/industry-8e22db6d-c32b-46ac-959a-99c6264d10cd/_ds_bundle.js"></script>
+  <style>
+    body { margin:0; background: var(--color-bg); color: var(--color-text); }
+    a { color: var(--color-accent-700); } a:hover { color: var(--color-accent-900); }
+    @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
+  </style>
+</helmet>
+<div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
+
+  <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
+    <div>
+      <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:4px">{{ seasonLabel }}</div>
+      <h1 style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin:0">{{ leagueName }}</h1>
+    </div>
+    <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Picking as</div><div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1">{{ me }}</div></div>
+        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adminPicker }}" hint-placeholder-val="{{ false }}">
+    <label style="display:flex;flex-direction:column;gap:4px;min-width:220px">
+      <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Admin: picking for</span>
+      <select class="input" value="{{ me }}" onChange="{{ setMe }}" style="font-size:18px;min-height:48px;font-family:var(--font-heading);font-weight:600">
+        <sc-for list="{{ players }}" as="p" hint-placeholder-count="3"><option value="{{ p }}">{{ p }}</option></sc-for>
+      </select>
+    </label>
+    </sc-if>
+  </header>
+
+  <sc-if value="{{ needsAuth }}" hint-placeholder-val="{{ false }}">
+    <form onSubmit="{{ authSubmit }}" class="blueprint" data-screen-label="Sign in" style="max-width:440px;margin:24px auto;padding:24px;display:flex;flex-direction:column;gap:14px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <h2 style="font-family:var(--font-heading);font-weight:600;font-size:32px;margin:0">{{ authTitle }}</h2>
+      <p style="margin:0;font-size:15px;color:var(--color-neutral-700)">{{ authHint }}</p>
+      <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+        <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Your name (shown on the board)</span><input class="input" value="{{ authName }}" onChange="{{ setAuthName }}" placeholder="e.g. Beau H." autoComplete="name" style="min-height:52px;font-size:20px"></label>
+      </sc-if>
+      <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Email</span><input class="input" type="email" value="{{ authEmail }}" onChange="{{ setAuthEmail }}" placeholder="you@example.com" autoComplete="email" style="min-height:52px;font-size:20px"></label>
+      <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">PIN</span><input class="input" type="password" inputMode="numeric" value="{{ authPin }}" onChange="{{ setAuthPin }}" placeholder="4+ digits" autoComplete="current-password" style="min-height:52px;font-size:24px;letter-spacing:.3em"></label>
+      <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;color:var(--color-accent-800)">{{ authError }}</div></sc-if>
+      <button type="submit" class="btn btn-primary blueprint" disabled="{{ authBusy }}" style="min-height:56px;font-size:22px;border-color:var(--color-accent)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        {{ authButton }}
+      </button>
+      <button type="button" class="btn btn-ghost" onClick="{{ toggleAuthMode }}" style="min-height:44px;font-size:16px">{{ authToggle }}</button>
+    </form>
+  </sc-if>
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+    <p style="text-align:center;font-family:var(--font-heading);font-weight:600;font-size:22px;color:var(--color-neutral-700);padding:40px 0">Loading the league…</p>
+  </sc-if>
+
+  <sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px">
+    <button class="btn {{ nflCls }}" onClick="{{ pickNfl }}" style="min-height:56px;font-size:22px">NFL Pool</button>
+    <button class="btn {{ cfbCls }}" onClick="{{ pickCfb }}" style="min-height:56px;font-size:22px">College Pool</button>
+  </div>
+
+  <nav style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:28px">
+    <button class="btn {{ tabPicksCls }}" onClick="{{ goPicks }}" style="min-height:48px;font-size:17px">Make Picks</button>
+    <button class="btn {{ tabStandCls }}" onClick="{{ goStand }}" style="min-height:48px;font-size:17px">Standings</button>
+    <button class="btn {{ tabPastCls }}" onClick="{{ goPast }}" style="min-height:48px;font-size:17px">Past Weeks</button>
+    <button class="btn {{ tabAdminCls }}" onClick="{{ goAdmin }}" style="min-height:48px;font-size:17px">Admin</button>
+  </nav>
+
+  <sc-if value="{{ isPicks }}" hint-placeholder-val="{{ true }}">
+    <section data-screen-label="Make Picks">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-secondary btn-icon" onClick="{{ prevWeek }}" disabled="{{ noPrev }}" aria-label="Previous week" style="width:44px;height:44px;font-size:20px">‹</button>
+          <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0;min-width:130px;text-align:center">Week {{ weekNum }}</h2>
+          <button class="btn btn-secondary btn-icon" onClick="{{ nextWeek }}" disabled="{{ noNext }}" aria-label="Next week" style="width:44px;height:44px;font-size:20px">›</button>
+        </div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:20px;color:var(--color-accent-700)">{{ progressText }}</div>
+      </div>
+      <div style="height:6px;background:var(--color-neutral-200);margin-bottom:10px"><div style="height:100%;background:var(--color-accent);width:{{ progressPct }}%"></div></div>
+      <p style="margin:0 0 20px;font-size:16px;color:var(--color-neutral-700)">{{ picksHint }}</p>
+
+      <div style="display:grid;gap:14px">
+        <sc-for list="{{ games }}" as="g" hint-placeholder-count="4">
+          <div class="blueprint" style="padding:12px;display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);gap:8px;align-items:stretch">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <button class="btn {{ g.awayCls }}" onClick="{{ g.pickAway }}" aria-disabled="{{ g.locked }}" style="pointer-events:{{ g.pe }};background:{{ g.awayBg }};border-color:{{ g.awayBd }};color:{{ g.awayFg }};min-height:72px;flex-direction:column;gap:2px;padding:8px;font-size:22px;line-height:1.05">
+              <span>{{ g.away }}</span>
+              <span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75">{{ g.awayScore }}</span>
+              <span style="font-size:15px;font-weight:600;letter-spacing:.02em;opacity:.9">{{ g.awayLine }}</span>
+            </button>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px;line-height:1.3;color:var(--color-neutral-700)">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:15px;color:var(--color-text)">{{ g.mid }}</span>
+              <span>{{ g.when }}</span>
+            </div>
+            <button class="btn {{ g.homeCls }}" onClick="{{ g.pickHome }}" aria-disabled="{{ g.locked }}" style="pointer-events:{{ g.pe }};background:{{ g.homeBg }};border-color:{{ g.homeBd }};color:{{ g.homeFg }};min-height:72px;flex-direction:column;gap:2px;padding:8px;font-size:22px;line-height:1.05">
+              <span>{{ g.home }}</span>
+              <span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75">{{ g.homeScore }}</span>
+              <span style="font-size:15px;font-weight:600;letter-spacing:.02em;opacity:.9">{{ g.homeLine }}</span>
+            </button>
+            <div style="grid-column:1 / -1;display:flex;justify-content:space-between;gap:8px;font-size:13px;color:{{ g.resultColor }}"><span>{{ g.resultText }}</span><span style="color:var(--color-neutral-600)">{{ g.poolText }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showTiebreak }}" hint-placeholder-val="{{ true }}">
+        <div class="blueprint" style="margin-top:24px;padding:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:20px">Tiebreaker: total points in {{ tiebreakGame }}</div>
+            <div style="font-size:14px;color:var(--color-neutral-700)">Closest guess wins the week if it's tied.</div>
+          </div>
+          <input class="input" type="number" inputMode="numeric" min="0" max="150" placeholder="e.g. 47" value="{{ tiebreak }}" onChange="{{ setTiebreak }}" disabled="{{ weekLocked }}" style="width:140px;min-height:52px;font-size:24px;text-align:center;font-family:var(--font-heading);font-weight:600">
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ weekOpen }}" hint-placeholder-val="{{ true }}">
+        <div style="position:sticky;bottom:12px;margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:var(--shadow-md)">
+          <div style="font-size:15px;color:var(--color-neutral-700)">{{ saveHint }}</div>
+          <button class="btn btn-primary blueprint" onClick="{{ save }}" disabled="{{ saveDisabled }}" style="min-height:56px;min-width:220px;font-size:22px;border-color:var(--color-accent)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            {{ saveLabel }}
+          </button>
+        </div>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isStand }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Standings">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px">
+        <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0">Standings</h2>
+        <div style="font-size:15px;color:var(--color-neutral-700)">{{ standHint }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px">
+        <div class="blueprint" style="padding:14px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">King of the hill</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ leaderName }}</div>
+          <div style="font-size:14px;color:var(--color-neutral-700)">{{ leaderLine }}</div>
+        </div>
+        <div class="blueprint" style="padding:14px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">You</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ myRankText }}</div>
+          <div style="font-size:14px;color:var(--color-neutral-700)">{{ myLine }}</div>
+        </div>
+        <div class="blueprint" style="padding:14px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Basement</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ loserName }}</div>
+          <div style="font-size:14px;color:var(--color-neutral-700)">{{ loserLine }}</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="table" style="font-size:16px">
+          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Win %</th><th style="text-align:right">Back</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+              <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
+                <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 7px">{{ r.rank }}</td>
+                <td style="padding:10px 7px;font-size:17px">{{ r.name }} <span class="tag tag-accent" style="margin-left:6px;display:{{ r.tagDisplay }}">{{ r.tag }}</span></td>
+                <td style="text-align:right;padding:10px 7px">{{ r.week }}</td>
+                <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
+                <td style="text-align:right;padding:10px 7px">{{ r.pct }}</td>
+                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.back }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isPast }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Past Weeks">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+        <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0">Past Weeks</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ finalWeeks }}" as="w" hint-placeholder-count="2">
+            <button class="btn {{ w.cls }}" onClick="{{ w.select }}" style="min-height:44px;font-size:16px;padding:0 18px">Week {{ w.n }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ hasPast }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px">
+          <div class="blueprint" style="padding:14px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Week {{ pastWeekNum }} winner</div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pastWinner }}</div>
+            <div style="font-size:14px;color:var(--color-neutral-700)">{{ pastWinnerLine }}</div>
+          </div>
+          <div class="blueprint" style="padding:14px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Your week</div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pastMyRecord }}</div>
+            <div style="font-size:14px;color:var(--color-neutral-700)">{{ pastMyLine }}</div>
+          </div>
+          <div class="blueprint" style="padding:14px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Week {{ pastWeekNum }} basement</div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pastLoser }}</div>
+            <div style="font-size:14px;color:var(--color-neutral-700)">{{ pastLoserLine }}</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table" style="font-size:16px">
+            <thead><tr><th>Game</th><th>Final</th><th>Winner</th><th>Your pick</th><th style="text-align:right">Pool got it</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ pastGames }}" as="g" hint-placeholder-count="6">
+                <tr>
+                  <td style="padding:10px 7px">{{ g.away }} at {{ g.home }}</td>
+                  <td style="padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ g.score }}</td>
+                  <td style="padding:10px 7px">{{ g.winner }}</td>
+                  <td style="padding:10px 7px;color:{{ g.color }};font-weight:500">{{ g.mine }}</td>
+                  <td style="padding:10px 7px;text-align:right;color:var(--color-neutral-600)">{{ g.pool }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noPast }}" hint-placeholder-val="{{ false }}">
+        <p style="font-size:17px;color:var(--color-neutral-700)">Nothing in the books yet. Come back after kickoff.</p>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Admin">
+      <sc-if value="{{ adminLocked }}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{ pinSubmit }}" class="blueprint" style="max-width:420px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:12px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h2 style="font-family:var(--font-heading);font-weight:600;font-size:30px;margin:0">Commissioner only</h2>
+          <p style="margin:0;font-size:15px;color:var(--color-neutral-700)">Enter the admin PIN to set games, enter scores and manage players.</p>
+          <input class="input" type="password" inputMode="numeric" placeholder="PIN" value="{{ pin }}" onChange="{{ setPin }}" style="min-height:52px;font-size:24px;text-align:center;letter-spacing:.3em">
+          <sc-if value="{{ pinError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--color-accent-800)">Wrong PIN. Nice try.</div></sc-if>
+          <button type="submit" class="btn btn-primary" style="min-height:52px;font-size:20px">Unlock</button>
+        </form>
+      </sc-if>
+      <sc-if value="{{ adminOk }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn btn-secondary btn-icon" onClick="{{ prevWeek }}" disabled="{{ noPrev }}" aria-label="Previous week" style="width:44px;height:44px;font-size:20px">‹</button>
+            <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0;min-width:130px;text-align:center">Week {{ weekNum }}</h2>
+            <button class="btn btn-secondary btn-icon" onClick="{{ nextWeek }}" disabled="{{ noNext }}" aria-label="Next week" style="width:44px;height:44px;font-size:20px">›</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="btn btn-secondary" onClick="{{ addWeek }}" style="min-height:44px;font-size:16px">+ Add week</button>
+            <button class="btn btn-secondary" onClick="{{ removeWeek }}" disabled="{{ noRemoveWeek }}" style="min-height:44px;font-size:16px">Delete week</button>
+            <button class="btn btn-ghost" onClick="{{ lockAdmin }}" style="min-height:44px;font-size:16px">Lock admin</button>
+          </div>
+        </div>
+        <p style="margin:0 0 12px;font-size:15px;color:var(--color-neutral-700)">{{ weekStatus }} {{ adminSaveHint }}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+            <button class="btn btn-secondary" onClick="{{ importWeek }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Import Week {{ weekNum }} schedule from ESPN</button>
+            <button class="btn btn-secondary" onClick="{{ pullScores }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Pull final scores now</button>
+        </div>
+        <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0 0 16px;font-size:14px;color:var(--color-neutral-700)">Demo mode — data stays on this device. Connect the Google Sheet (see SETUP.md) to share the league with everyone.</p>
+        </sc-if>
+        <div style="display:grid;gap:12px">
+          <div style="display:grid;grid-template-columns:minmax(0,2fr) 76px 76px minmax(0,2fr) minmax(0,1.4fr) 90px 44px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);padding:0 4px">
+            <span>Away team</span><span>Away</span><span>Home</span><span>Home team</span><span>Kickoff</span><span>Home line</span><span></span>
+          </div>
+          <sc-for list="{{ adminGames }}" as="g" hint-placeholder-count="4">
+            <div class="blueprint" style="padding:10px;display:grid;grid-template-columns:minmax(0,2fr) 76px 76px minmax(0,2fr) minmax(0,1.4fr) 90px 44px;gap:8px;align-items:center">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <input class="input" value="{{ g.away }}" onChange="{{ g.setAway }}" placeholder="Away team" style="min-height:44px;font-size:16px">
+              <input class="input" type="number" inputMode="numeric" min="0" value="{{ g.asVal }}" onChange="{{ g.setAs }}" placeholder="—" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
+              <input class="input" type="number" inputMode="numeric" min="0" value="{{ g.hsVal }}" onChange="{{ g.setHs }}" placeholder="—" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
+              <input class="input" value="{{ g.home }}" onChange="{{ g.setHome }}" placeholder="Home team" style="min-height:44px;font-size:16px">
+              <input class="input" value="{{ g.when }}" onChange="{{ g.setWhen }}" placeholder="Sun 12:00 PM" style="min-height:44px;font-size:15px">
+              <input class="input" type="number" step="0.5" value="{{ g.spreadVal }}" onChange="{{ g.setSpread }}" placeholder="—" style="min-height:44px;font-size:15px;text-align:center">
+              <button class="btn btn-secondary btn-icon" onClick="{{ g.remove }}" aria-label="Remove game" style="width:44px;height:44px;font-size:20px">×</button>
+            </div>
+          </sc-for>
+          <button class="btn btn-secondary" onClick="{{ addGame }}" style="min-height:52px;font-size:20px">+ Add game to Week {{ weekNum }}</button>
+        </div>
+        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
+          <div style="position:sticky;bottom:12px;margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;padding:12px;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:var(--shadow-md)">
+            <button class="btn btn-primary blueprint" onClick="{{ adminSave }}" disabled="{{ adminSaveDisabled }}" style="min-height:56px;min-width:260px;font-size:22px;border-color:var(--color-accent)">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              {{ adminSaveLabel }}
+            </button>
+          </div>
+        </sc-if>
+        <div class="blueprint" style="margin-top:32px;padding:16px;display:grid;gap:10px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
+            <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Players ({{ playerCount }})</h3>
+            <span style="font-size:14px;color:var(--color-neutral-700)">{{ playersHint }}</span>
+          </div>
+          <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ true }}">
+            <textarea class="input" rows="10" defaultValue="{{ playersText }}" onBlur="{{ setPlayers }}" style="font-size:16px;line-height:1.6;min-height:200px"></textarea>
+          </sc-if>
+          <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+              <sc-for list="{{ playerList }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--color-divider);padding:6px 6px 6px 12px;font-size:16px"><span>{{ p.name }}</span><button class="btn btn-ghost btn-icon" onClick="{{ p.remove }}" aria-label="Remove player" style="width:36px;height:36px;font-size:18px">×</button></div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="margin-top:24px;display:flex;justify-content:flex-end">
+          <button class="btn btn-ghost" onClick="{{ resetAll }}" disabled="{{ isSync }}" style="min-height:44px;font-size:15px">Reset to sample data</button>
+        </div>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--color-accent-900);color:var(--color-bg);padding:14px 20px;font-family:var(--font-heading);font-weight:600;font-size:18px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease-out;z-index:10">{{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;apiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://script.google.com/macros/s/AKfycbxFgdYiHACVnw3QZ8OqRcy43B6ucGpjmMpfQgqjQ_bdHV9nAsQtiME72UWPrh_LRfRA/exec&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;,&quot;label&quot;:&quot;API URL (Google Apps Script /exec)&quot;},&quot;leagueName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Anschutz Oil Trash Pick Em&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;},&quot;trashTalk&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;tiebreaker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rules&quot;},&quot;adminPin&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2971&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Admin&quot;,&quot;label&quot;:&quot;Admin PIN (demo mode only)&quot;}}">
+const G = (id, away, home, when, as, hs) => ({ id, away, home, when, as, hs });
+const POOLS = {
+  nfl: { label: 'NFL', weeks: [
+    { n: 1, games: [
+      G('n1a','Cowboys','Eagles','Thu 7:20 PM',20,24), G('n1b','Chiefs','Chargers','Fri 7:00 PM',27,21), G('n1c','Steelers','Jets','Sun 12:00 PM',34,32),
+      G('n1d','Bengals','Browns','Sun 12:00 PM',17,16), G('n1e','Dolphins','Colts','Sun 12:00 PM',8,33), G('n1f','Raiders','Patriots','Sun 12:00 PM',20,13),
+      G('n1g','Cardinals','Saints','Sun 12:00 PM',20,13), G('n1h','Giants','Commanders','Sun 12:00 PM',6,21), G('n1i','Panthers','Jaguars','Sun 12:00 PM',10,26),
+      G('n1j','Buccaneers','Falcons','Sun 12:00 PM',23,20), G('n1k','49ers','Seahawks','Sun 3:05 PM',17,13), G('n1l','Titans','Broncos','Sun 3:05 PM',12,20),
+      G('n1m','Lions','Packers','Sun 3:25 PM',13,27), G('n1n','Texans','Rams','Sun 3:25 PM',9,14), G('n1o','Ravens','Bills','Sun 7:20 PM',40,41), G('n1p','Vikings','Bears','Mon 7:15 PM',27,24) ] },
+    { n: 2, games: [
+      G('n2a','Commanders','Packers','Thu 7:15 PM',18,27), G('n2b','Browns','Ravens','Sun 12:00 PM',17,41), G('n2c','Jaguars','Bengals','Sun 12:00 PM',27,31),
+      G('n2d','Giants','Cowboys','Sun 12:00 PM',37,40), G('n2e','Bears','Lions','Sun 12:00 PM',21,52), G('n2f','Patriots','Dolphins','Sun 12:00 PM',33,27),
+      G('n2g','49ers','Saints','Sun 12:00 PM',26,21), G('n2h','Bills','Jets','Sun 12:00 PM',30,10), G('n2i','Seahawks','Steelers','Sun 12:00 PM',31,17),
+      G('n2j','Rams','Titans','Sun 12:00 PM',33,19), G('n2k','Broncos','Colts','Sun 3:05 PM',28,29), G('n2l','Panthers','Cardinals','Sun 3:05 PM',22,27),
+      G('n2m','Eagles','Chiefs','Sun 3:25 PM',20,17), G('n2n','Falcons','Vikings','Sun 7:20 PM',22,6), G('n2o','Buccaneers','Texans','Mon 6:00 PM',20,19), G('n2p','Chargers','Raiders','Mon 9:00 PM',20,9) ] },
+    { n: 3, games: [
+      G('n3a','Dolphins','Bills','Thu 7:15 PM'), G('n3b','Falcons','Panthers','Sun 12:00 PM'), G('n3c','Packers','Browns','Sun 12:00 PM'),
+      G('n3d','Texans','Jaguars','Sun 12:00 PM'), G('n3e','Bengals','Vikings','Sun 12:00 PM'), G('n3f','Steelers','Patriots','Sun 12:00 PM'),
+      G('n3g','Rams','Eagles','Sun 12:00 PM'), G('n3h','Jets','Buccaneers','Sun 12:00 PM'), G('n3i','Colts','Titans','Sun 12:00 PM'),
+      G('n3j','Raiders','Commanders','Sun 12:00 PM'), G('n3k','Broncos','Chargers','Sun 3:05 PM'), G('n3l','Saints','Seahawks','Sun 3:05 PM'),
+      G('n3m','Cowboys','Bears','Sun 3:25 PM'), G('n3n','Cardinals','49ers','Sun 3:25 PM'), G('n3o','Chiefs','Giants','Sun 7:20 PM'), G('n3p','Lions','Ravens','Mon 7:15 PM') ] } ] },
+  cfb: { label: 'College', weeks: [
+    { n: 1, games: [
+      G('c1a','Texas','Ohio State','Sat 11:00 AM',7,14), G('c1b','LSU','Clemson','Sat 6:30 PM',17,10), G('c1c','Alabama','Florida State','Sat 2:30 PM',17,31),
+      G('c1d','Notre Dame','Miami','Sun 6:30 PM',24,27), G('c1e','Colorado','Georgia Tech','Fri 7:00 PM',20,27), G('c1f','Utah','UCLA','Sat 10:00 PM',43,10),
+      G('c1g','Auburn','Baylor','Fri 7:00 PM',38,24), G('c1h','Boise State','South Florida','Thu 4:30 PM',7,34), G('c1i','Oklahoma State','Oregon','Sat 2:30 PM',3,69), G('c1j','TCU','North Carolina','Mon 7:00 PM',48,14) ] },
+    { n: 2, games: [
+      G('c2a','Michigan','Oklahoma','Sat 6:30 PM',13,24), G('c2b','Iowa','Iowa State','Sat 11:00 AM',13,16), G('c2c','Baylor','SMU','Sat 11:00 AM',45,48),
+      G('c2d','Kansas','Missouri','Sat 2:30 PM',31,42), G('c2e','Illinois','Duke','Sat 11:00 AM',45,19), G('c2f','South Florida','Florida','Sat 3:15 PM',18,16),
+      G('c2g','Utah State','Texas A&M','Sat 11:45 AM',3,44), G('c2h','Arizona State','Mississippi State','Sat 2:30 PM',20,24), G('c2i','San Jose State','Texas','Sat 3:15 PM',7,38), G('c2j','Georgia','Austin Peay','Sat 2:45 PM',28,6) ] },
+    { n: 3, games: [
+      G('c3a','Georgia','Tennessee','Sat 2:30 PM'), G('c3b','Texas A&M','Notre Dame','Sat 6:30 PM'), G('c3c','Florida','LSU','Sat 6:30 PM'),
+      G('c3d','Wisconsin','Alabama','Sat 11:00 AM'), G('c3e','Ole Miss','Arkansas','Sat 11:00 AM'), G('c3f','Ohio State','Ohio','Sat 2:30 PM'),
+      G('c3g','Clemson','Georgia Tech','Sat 11:00 AM'), G('c3h','Vanderbilt','South Carolina','Sat 2:30 PM'), G('c3i','Texas Tech','Oregon State','Sat 9:00 PM'), G('c3j','Colorado','Houston','Fri 6:30 PM') ] } ] }
+};
+const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus T.','Randy P.','Tina L.','Wade S.','Bubba G.','Shane D.','Kelsey B.','Hank O.','Luis A.','Darrell F.','Amber C.','Roy N.','Chase E.','Colt J.','Misty V.','Garrett H.','Tyler Q.','Jesse U.','Lonnie Z.','Brandi K.','Skeeter M.','Reid T.','Tanner B.','Dale I.','Clay R.','Jimbo W.','Vanessa P.','Ricky S.','Boone L.','Kyle G.','Dwayne C.','Trace O.','Heather D.','Earl F.','Gus M.','Preston A.','Stormy N.','Rusty E.','Jake J.','Wyatt V.','Cheyenne H.','Duke Q.','Lane U.','Otis Z.','Brock K.'];
+const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
+  Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
+const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
+const KEY = 'pickem.v1';
+const hash = s => { let x = 7; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
+const simPick = (p, g) => (hash(p + '|' + g.id) % 100) < 55 ? g.home : g.away;
+const scored = g => g.as != null && g.hs != null && g.as !== '' && g.hs !== '';
+const winner = g => !scored(g) ? null : (Number(g.hs) > Number(g.as) ? g.home : g.away);
+const isFinal = w => w.games.length > 0 && w.games.every(scored);
+const cls = on => on ? 'btn-primary' : 'btn-secondary';
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    let store = {};
+    try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    const players = store.players && store.players.length ? store.players : PLAYERS;
+    let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
+    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
+      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '' };
+  }
+  get sync() { return !!(this.props.apiUrl || '').trim(); }
+  componentDidMount() { if (this.sync && this.state.session) this.load(); }
+  componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) { if (this.state.session) this.load(); } else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, picks: {}, tb: {} }); } }
+  async api(body) {
+    const url = this.props.apiUrl.trim();
+    const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state');
+    const text = await r.text(); let j; try { j = JSON.parse(text); } catch (e) { throw new Error('The sheet replied with something that isn\'t data. Check the Web app is deployed as "Anyone" and you copied the /exec URL.'); }
+    if (!j.ok) throw new Error(j.error || 'Request failed');
+    return j;
+  }
+  applyState(j, extra) {
+    if (!j.data || !j.data.nfl || !j.data.cfb) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
+    const me = this.state.session ? this.state.session.name : '';
+    const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
+    this.setState({ data: j.data, players: j.players || [], picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
+  }
+  async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
+  setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
+  adminOp(op, extra, okMsg) {
+    this.setState({ busy: op });
+    this.api({ action: 'admin', op, adminPin: this.state.adminPin, ...extra }).then(j => { this.applyState(j, { busy: '', adminDirty: false }); this.showToast(typeof okMsg === 'function' ? okMsg(j) : okMsg); })
+      .catch(e => { this.setState({ busy: '' }); this.showToast('That didn\'t work: ' + e.message); });
+  }
+  persist(extra) {
+    this.setState(extra, () => {
+      const { me, picks, tb, data, players } = this.state;
+      try { localStorage.setItem(KEY, JSON.stringify({ me, picks, tb, data, players })); } catch (e) {}
+    });
+  }
+  pickFor(player, g, weekIsFinal) {
+    if (this.sync) return this.state.picks[`${player}|${g.id}`] || null;
+    const stored = this.state.picks[`${player}|${g.id}`];
+    if (player === this.state.me) return stored || (weekIsFinal ? simPick(player, g) : null);
+    return simPick(player, g);
+  }
+  record(player, week) { let w = 0, l = 0; for (const g of week.games) { const win = winner(g); if (!win) continue; this.pickFor(player, g, true) === win ? w++ : l++; } return [w, l]; }
+  mutate(fn, done) { this.setState(s => { const data = JSON.parse(JSON.stringify(s.data)); fn(data); return { data, adminDirty: true }; }, () => { this.persist({}); if (done) done(); }); }
+  // ESPN's public scoreboard, fetched from this browser (Google's servers are blocked by ESPN).
+  async espn(pool, week) {
+    const now = new Date(), season = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+    const url = 'https://site.api.espn.com/apis/site/v2/sports/football/' + (pool === 'nfl' ? 'nfl' : 'college-football') + '/scoreboard?dates=' + season + '&seasontype=2&week=' + week + (pool === 'cfb' ? '&groups=80&limit=400' : '');
+    const r = await fetch(url); if (!r.ok) throw new Error('ESPN returned ' + r.status);
+    const j = await r.json();
+    const list = (j.events || []).map(e => {
+      const c = e.competitions[0], home = c.competitors.find(x => x.homeAway === 'home'), away = c.competitors.find(x => x.homeAway === 'away');
+      const name = t => pool === 'nfl' ? t.team.name : t.team.location, rk = t => !!(t.curatedRank && t.curatedRank.current <= 25);
+      const final = !!(c.status && c.status.type && c.status.type.completed);
+      const when = new Date(e.date).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }).replace(',', '');
+      const spread = this.homeLine(c.odds && c.odds[0], home.team.abbreviation, away.team.abbreviation);
+      return { id: 'e' + e.id, espnId: String(e.id), away: name(away), home: name(home), when, spread, as: final ? Number(away.score) : null, hs: final ? Number(home.score) : null, final, ranked: rk(home) || rk(away), homeAbbr: home.team.abbreviation, awayAbbr: away.team.abbreviation };
+    });
+    // The weekly scoreboard usually omits odds; fetch each game's line from ESPN's odds feed.
+    const lg = pool === 'nfl' ? 'nfl' : 'college-football';
+    await Promise.all(list.filter(g => g.spread == null && !g.final && (pool !== 'cfb' || g.ranked)).map(async g => {
+      const pick = items => { const o = items.find(x => x.provider && /ESPN BET/i.test(x.provider.name || '')) || items[0]; return this.homeLine(o, g.homeAbbr, g.awayAbbr); };
+      try {   // game summary carries the pickcenter lines
+        const rr = await fetch(`https://site.web.api.espn.com/apis/site/v2/sports/football/${lg}/summary?event=${g.espnId}`);
+        if (rr.ok) { const jj = await rr.json(); g.spread = pick(jj.pickcenter || []); }
+      } catch (e) {}
+      if (g.spread != null) return;
+      try {   // fallback: core odds feed
+        const rr = await fetch(`https://sports.core.api.espn.com/v2/sports/football/leagues/${lg}/events/${g.espnId}/competitions/${g.espnId}/odds`);
+        if (rr.ok) { const jj = await rr.json(); g.spread = pick(jj.items || []); }
+      } catch (e) {}
+    }));
+    return list.map(({ homeAbbr, awayAbbr, ...g }) => g);
+  }
+  // Home-team line as a number (negative = home favored), from an ESPN odds object.
+  homeLine(o, homeAbbr, awayAbbr) {
+    if (!o) return null;
+    const d = String(o.details || '').trim();
+    if (/^(EVEN|PK|PICK)/i.test(d)) return 0;
+    const sp = typeof o.spread === 'number' ? o.spread : (o.spread != null && o.spread !== '' ? Number(o.spread) : null);
+    if (o.homeTeamOdds && typeof o.homeTeamOdds.favorite === 'boolean' && sp != null && sp !== 0) return o.homeTeamOdds.favorite ? -Math.abs(sp) : Math.abs(sp);
+    const mm = /^([A-Z&]+)\s([+-]?\d+(?:\.\d+)?)$/.exec(d);
+    if (mm) { const n = Number(mm[2]); if (mm[1] === homeAbbr) return n; if (mm[1] === awayAbbr) return -n; }
+    return sp != null && !Number.isNaN(sp) ? sp : null;
+  }
+  finishAdmin(pool, msg) { if (this.sync) this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks }, msg); else { this.setState({ busy: '' }); this.showToast(msg); } }
+  showToast(msg) { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 3200); }
+  renderVals() {
+    const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
+    const { pool, tab, picks, tb, dirty, toast, players, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy } = this.state;
+    const sync = this.sync, me = sync ? (session ? session.name : '') : this.state.me;
+    const P = (this.state.data && this.state.data[pool]) || { weeks: [] }; if (!P.weeks || !P.weeks.length) P.weeks = [{ n: 1, games: [] }]; const weeks = P.weeks;
+    const finals = weeks.filter(isFinal), openIdx = weeks.findIndex(w => !isFinal(w));
+    const wi = this.state.week ?? (openIdx < 0 ? weeks.length - 1 : openIdx);
+    const week = weeks[wi], weekFinal = isFinal(week);
+    const key = `${pool}-${week.n}`;
+    const T = (a, b) => trash ? a : b;
+    const games = week.games.map(g => {
+      const win = winner(g), locked = g.as != null, mine = this.pickFor(me, g, locked);
+      const poolPct = players.length ? Math.round(players.filter(p => this.pickFor(p, g, locked) === (win || mine || g.home)).length / players.length * 100) : 0;
+      let resultText = '', resultColor = 'var(--color-neutral-600)';
+      if (locked) {
+        if (!mine) { resultText = T('No pick. That\'s a free loss, champ.', 'No pick made'); }
+        else if (mine === win) { resultText = T('✓ Nailed it', '✓ Correct'); resultColor = 'var(--color-accent-700)'; }
+        else { resultText = T('✗ Swing and a miss', '✗ Incorrect'); }
+      } else resultText = mine ? `You've got ${mine}` : T('Pick one. Any one. Just pick.', 'Tap a team to pick');
+      const ln = g.spread === '' || g.spread == null ? null : Number(g.spread), fmt = v => v === 0 ? 'PK' : (v > 0 ? '+' + v : String(v));
+      return { ...g, awayLine: ln == null ? '' : fmt(-ln), homeLine: ln == null ? '' : fmt(ln), locked, pe: locked ? 'none' : 'auto', mid: locked ? 'FINAL' : 'at', when: g.when,
+        awayScore: locked ? String(g.as) : 'Away', homeScore: locked ? String(g.hs) : 'Home',
+        awayCls: locked ? (win === g.away ? 'btn-primary' : 'btn-secondary') : cls(mine === g.away),
+        homeCls: locked ? (win === g.home ? 'btn-primary' : 'btn-secondary') : cls(mine === g.home),
+        awayBg: (locked ? win === g.away : mine === g.away) ? teamColor(g.away) : 'transparent', awayFg: (locked ? win === g.away : mine === g.away) ? '#ffffff' : 'var(--color-text)', awayBd: (locked ? win === g.away : mine === g.away) ? teamColor(g.away) : 'var(--color-divider)',
+        homeBg: (locked ? win === g.home : mine === g.home) ? teamColor(g.home) : 'transparent', homeFg: (locked ? win === g.home : mine === g.home) ? '#ffffff' : 'var(--color-text)', homeBd: (locked ? win === g.home : mine === g.home) ? teamColor(g.home) : 'var(--color-divider)',
+        pickAway: () => this.setState(s => ({ picks: { ...s.picks, [`${me}|${g.id}`]: g.away }, dirty: true })),
+        pickHome: () => this.setState(s => ({ picks: { ...s.picks, [`${me}|${g.id}`]: g.home }, dirty: true })),
+        resultText, resultColor, poolText: locked ? `${poolPct}% of the pool had ${win}` : (mine && !sync ? `${poolPct}% of the pool agrees` : '') };
+    });
+    const made = week.games.filter(g => picks[`${me}|${g.id}`]).length, total = week.games.length;
+    const [myW, myL] = weekFinal ? this.record(me, week) : [0, 0];
+    const lastG = week.games[total - 1];
+    const upd = (id, k) => e => this.mutate(d => { const g = d[pool].weeks[wi].games.find(x => x.id === id); if (g) g[k] = (k === 'as' || k === 'hs' || k === 'spread') ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value; });
+    const adminGames = week.games.map(g => ({ ...g, asVal: g.as ?? '', hsVal: g.hs ?? '', setAway: upd(g.id, 'away'), setHome: upd(g.id, 'home'), setWhen: upd(g.id, 'when'), setAs: upd(g.id, 'as'), setHs: upd(g.id, 'hs'), setSpread: upd(g.id, 'spread'), spreadVal: g.spread ?? '',
+      remove: () => { if (confirm(`Remove ${g.away} at ${g.home}?`)) this.mutate(d => { const w = d[pool].weeks[wi]; w.games = w.games.filter(x => x.id !== g.id); }); } }));
+    // standings
+    const rowsRaw = players.map(p => { let sw = 0, sl = 0, lw = [0, 0]; finals.forEach((w, i) => { const r = this.record(p, w); sw += r[0]; sl += r[1]; if (i === finals.length - 1) lw = r; }); return { name: p, sw, sl, lw }; })
+      .sort((a, b) => b.sw - a.sw || b.lw[0] - a.lw[0] || a.name.localeCompare(b.name));
+    const top = rowsRaw[0], bottom = rowsRaw[rowsRaw.length - 1];
+    let rank = 0, prevW = -1;
+    const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
+      rank, name: r.name, week: `${r.lw[0]}-${r.lw[1]}`, season: `${r.sw}-${r.sl}`, pct: r.sw + r.sl ? Math.round(r.sw / (r.sw + r.sl) * 1000) / 10 + '%' : '—',
+      back: (top ? top.sw : 0) - r.sw === 0 ? '—' : String((top ? top.sw : 0) - r.sw), bg: isMe ? 'var(--color-accent-100)' : 'transparent', weight: isMe ? '600' : '400',
+      tag: isMe ? 'You' : (i === 0 ? T('Big dog', 'Leader') : i === rowsRaw.length - 1 ? T('Basement', 'Last') : ''), tagDisplay: isMe || i === 0 || i === rowsRaw.length - 1 ? 'inline-flex' : 'none' }; });
+    const myRow = rows.find(r => r.name === me);
+    // past
+    const pw = finals.find(w => w.n === this.state.pastWeek) || finals[finals.length - 1];
+    let pastVals = { hasPast: false, noPast: true, pastGames: [], finalWeeks: [] };
+    if (pw) {
+      const recs = players.map(p => ({ p, r: this.record(p, pw) })).sort((a, b) => b.r[0] - a.r[0]);
+      const best = recs[0] || { p: '—', r: [0, 0] }, worst = recs[recs.length - 1] || best, meRec = recs.find(x => x.p === me), myR = meRec ? meRec.r : [0, 0];
+      pastVals = { hasPast: true, noPast: false, pastWeekNum: pw.n,
+        finalWeeks: finals.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
+        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]}. ${T('Insufferable all week.', 'Best record this week.')}`,
+        pastLoser: worst.p, pastLoserLine: `${worst.r[0]}-${worst.r[1]}. ${T('Coin flips would\'ve done better.', 'Worst record this week.')}`,
+        pastMyRecord: `${myR[0]}-${myR[1]}`, pastMyLine: myR[0] === best.r[0] ? T('Top of the pile. Enjoy it.', 'Tied for the top.') : myR[0] === worst.r[0] ? T('Rock bottom. Nowhere to go but up.', 'Bottom of the week.') : `${best.r[0] - myR[0]} ${T('back of the big dog', 'behind the leader')}`,
+        pastGames: pw.games.map(g => { const win = winner(g), mine = this.pickFor(me, g, true); const pct = Math.round(players.filter(p => this.pickFor(p, g, true) === win).length / players.length * 100);
+          return { away: g.away, home: g.home, score: `${g.as}-${g.hs}`, winner: win, mine: mine === win ? `${mine} ✓` : `${mine} ✗`, color: mine === win ? 'var(--color-accent-700)' : 'var(--color-neutral-500)', pool: pct + '%' }; }) };
+    }
+    return {
+      leagueName: this.props.leagueName ?? 'Anschutz Oil Trash Pick Em', seasonLabel: `2026 Season · ${P.label} · Straight up`,
+      players, me, setMe: e => this.persist({ me: e.target.value, dirty: false }),
+      nflCls: cls(pool === 'nfl'), cfbCls: cls(pool === 'cfb'),
+      pickNfl: () => this.setState({ pool: 'nfl', week: null, pastWeek: null }), pickCfb: () => this.setState({ pool: 'cfb', week: null, pastWeek: null }),
+      tabPicksCls: cls(tab === 'picks'), tabStandCls: cls(tab === 'stand'), tabPastCls: cls(tab === 'past'),
+      goPicks: () => this.setState({ tab: 'picks' }), goStand: () => this.setState({ tab: 'stand' }), goPast: () => this.setState({ tab: 'past' }),
+      isPicks: tab === 'picks', isStand: tab === 'stand', isPast: tab === 'past',
+      weekNum: week.n, prevWeek: () => this.setState({ week: wi - 1 }), nextWeek: () => this.setState({ week: wi + 1 }), noPrev: wi === 0, noNext: wi === weeks.length - 1,
+      games, weekOpen: !weekFinal, weekLocked: weekFinal,
+      progressText: weekFinal ? `You went ${myW}-${myL}` : `${made} of ${total} picked`, progressPct: weekFinal ? 100 : (total ? Math.round(made / total * 100) : 0),
+      picksHint: weekFinal ? T('This week is in the books. Scroll down and relive your mistakes.', 'This week is final.') : T('Tap the team you think wins. Straight up, no spreads, no excuses. Picks lock at each kickoff.', 'Tap the team you think will win. Picks lock at each kickoff.'),
+      showTiebreak, tiebreakGame: lastG ? `${lastG.away} at ${lastG.home}` : '—', tiebreak: tb[key] ?? '',
+      setTiebreak: e => this.setState(s => ({ tb: { ...s.tb, [key]: e.target.value }, dirty: true })),
+      saveHint: made < total ? T(`${total - made} still blank. The games won't wait for you.`, `${total - made} game${total - made === 1 ? '' : 's'} left to pick.`) : dirty ? T('All picked. Now commit.', 'All games picked. Save to lock in.') : T('Saved. Go talk some trash.', 'Your picks are saved.'),
+      saveLabel: busy === 'save' ? 'Saving…' : (dirty || made === 0 ? 'Lock \'em in' : 'Saved ✓'), saveDisabled: !dirty || busy === 'save',
+      save: () => { const msg = T(made < total ? `Saved ${made} of ${total}. Finish the job before kickoff.` : 'Locked in. No take-backs.', made < total ? `Saved ${made} of ${total} picks.` : 'All picks saved.');
+        if (!sync) { this.persist({ dirty: false }); this.showToast(msg); return; }
+        const wp = {}; week.games.forEach(g => { const v = picks[`${me}|${g.id}`]; if (v) wp[g.id] = v; }); const tbo = {}; if (tb[key] !== undefined && tb[key] !== '') tbo[key] = tb[key];
+        this.setState({ busy: 'save' });
+        this.api({ action: 'savePicks', email: session.email, pin: session.pin, picks: wp, tb: tbo }).then(j => { this.applyState(j, { dirty: false, busy: '' }); this.showToast(msg); }).catch(e => { this.setState({ busy: '' }); this.showToast('Save failed: ' + e.message); }); },
+      tabAdminCls: cls(tab === 'admin'), goAdmin: () => this.setState({ tab: 'admin' }), isAdmin: tab === 'admin',
+      adminOk, adminLocked: !adminOk, pin, pinError, setPin: e => this.setState({ pin: e.target.value, pinError: false }),
+      pinSubmit: e => { e.preventDefault(); if (!sync) { if (pin === String(this.props.adminPin ?? '1234')) this.setState({ adminOk: true, pin: '' }); else this.setState({ pinError: true }); return; }
+        this.setState({ busy: 'pin' }); this.api({ action: 'admin', op: 'auth', adminPin: pin }).then(() => this.setState({ adminOk: true, adminPin: pin, pin: '', busy: '' })).catch(e => { this.setState({ pinError: true, busy: '' }); if (!/admin PIN/i.test(e.message)) this.showToast(e.message); }); },
+      isSync: sync, isDemo: !sync, busyAny: !!busy, adminPicker: !sync && adminOk, showIdentity: sync ? !!session : !adminOk,
+      adminSave: () => this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks }, 'Saved to the league sheet'),
+      adminSaveDisabled: !adminDirty || !!busy, adminSaveLabel: busy === 'setPool' ? 'Saving…' : (adminDirty ? 'Save changes to league' : 'All changes saved'),
+      adminSaveHint: sync ? (adminDirty ? 'You have unsaved changes.' : '') : 'Changes save automatically.',
+      importWeek: async () => { this.setState({ busy: 'importWeek' }); try {
+          const ev = await this.espn(pool, week.n), have = new Set(week.games.map(g => g.espnId).filter(Boolean));
+          const add = ev.filter(g => !have.has(g.espnId) && (pool !== 'cfb' || g.ranked)).map(({ ranked, final, ...g }) => g);
+          this.mutate(d => { d[pool].weeks[wi].games.push(...add); }, () => this.finishAdmin(pool, `Added ${add.length} game${add.length === 1 ? '' : 's'} from ESPN`));
+        } catch (e) { this.setState({ busy: '' }); this.showToast('Couldn\'t reach ESPN: ' + e.message); } },
+      pullScores: async () => { this.setState({ busy: 'pullScores' }); try {
+          const ev = await this.espn(pool, week.n); let n = 0, sp = 0;
+          this.mutate(d => { d[pool].weeks[wi].games.forEach(g => { const m = ev.find(x => (g.espnId && x.espnId === g.espnId) || (x.away.toLowerCase() === String(g.away).toLowerCase() && x.home.toLowerCase() === String(g.home).toLowerCase()));
+            if (m && m.spread != null && g.as == null && g.hs == null && g.spread !== m.spread) { g.spread = m.spread; sp++; }
+            if (m && m.final && (g.as !== m.as || g.hs !== m.hs)) { g.as = m.as; g.hs = m.hs; g.espnId = m.espnId; n++; } }); }, () => this.finishAdmin(pool, n || sp ? `Updated ${n} score${n === 1 ? '' : 's'}${sp ? `, ${sp} line${sp === 1 ? '' : 's'}` : ''}` : (ev.some(x => x.spread != null) ? 'No new final scores or line changes' : 'Scores unchanged — ESPN returned no lines for this week')));
+        } catch (e) { this.setState({ busy: '' }); this.showToast('Couldn\'t reach ESPN: ' + e.message); } },
+      playerList: players.map(p => ({ name: p, remove: () => { if (confirm(`Remove ${p} and all their picks?`)) this.adminOp('removePlayer', { name: p }, `${p} removed`); } })),
+      needsAuth: sync && !session, ready: !sync || (!!session && !loading), loading: sync && !!session && loading,
+      authTitle: authMode === 'login' ? 'Sign in' : 'Join the league', authHint: authMode === 'login' ? 'Your email and PIN. Same ones every week.' : 'The name is what shows on the board. Email is how you sign in. PIN is 4+ digits.',
+      authName, authEmail, authPin, authError, isRegister: authMode === 'register',
+      setAuthEmail: e => this.setState({ authEmail: e.target.value, authError: '' }), hasAuthError: !!authError, authBusy: busy === 'auth',
+      setAuthName: e => this.setState({ authName: e.target.value, authError: '' }), setAuthPin: e => this.setState({ authPin: e.target.value, authError: '' }),
+      authButton: busy === 'auth' ? 'One sec…' : (authMode === 'login' ? 'Sign in' : 'Register'), authToggle: authMode === 'login' ? 'New here? Register' : 'Already registered? Sign in',
+      toggleAuthMode: () => this.setState({ authMode: authMode === 'login' ? 'register' : 'login', authError: '' }),
+      authSubmit: e => { e.preventDefault(); const name = authName.trim(), email = authEmail.trim().toLowerCase();
+        if (!email || !authPin || (authMode === 'register' && !name)) { this.setState({ authError: authMode === 'register' ? 'Need a name, email and PIN.' : 'Need both email and PIN.' }); return; }
+        this.setState({ busy: 'auth' }); this.api({ action: authMode, name, email, pin: authPin }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
+      signOut: () => this.setSession(null),
+      lockAdmin: () => this.setState({ adminOk: false }),
+      adminGames, weekStatus: weekFinal ? 'All scores in — this week counts in standings.' : week.games.length ? 'Leave scores blank until the game is over. The week counts once every score is in.' : 'No games yet. Add one below.',
+      addGame: () => this.mutate(d => { d[pool].weeks[wi].games.push({ id: pool + week.n + '-' + Date.now().toString(36), away: '', home: '', when: 'Sun 12:00 PM', spread: null, as: null, hs: null }); }),
+      addWeek: () => { this.mutate(d => { d[pool].weeks.push({ n: d[pool].weeks.length + 1, games: [] }); }); this.setState({ week: weeks.length }); this.showToast(`Week ${weeks.length + 1} added`); },
+      removeWeek: () => { if (weeks.length > 1 && confirm(`Delete Week ${week.n} and all its games?`)) { this.mutate(d => { d[pool].weeks.splice(wi, 1); d[pool].weeks.forEach((w, i) => w.n = i + 1); }); this.setState({ week: Math.max(0, wi - 1), pastWeek: null }); } },
+      noRemoveWeek: weeks.length <= 1,
+      playersText: players.join('\n'), setPlayers: e => { const list = e.target.value.split('\n').map(x => x.trim()).filter(Boolean); if (list.length) this.persist({ players: list, me: list.includes(me) ? me : list[0] }); },
+      playerCount: players.length, playersHint: sync ? 'Players register themselves on the sign-in screen. Remove anyone who shouldn\'t be here.' : 'One name per line. Both pools share this list.',
+      resetAll: () => { if (confirm('Reset games, scores and players to the sample data? Picks are kept.')) this.persist({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, week: null, pastWeek: null }); },
+      standHint: finals.length ? `Through Week ${finals[finals.length - 1].n} · ${players.length} players` : 'No results yet',
+      lastFinalWeek: finals.length ? finals[finals.length - 1].n : '—',
+      leaderName: top ? top.name : '—', leaderLine: top ? `${top.sw}-${top.sl} ${T('and won\'t shut up about it', 'on the season')}` : '',
+      myRankText: myRow ? `#${myRow.rank} of ${players.length}` : '—', myLine: myRow ? `${myRow.season} · ${myRow.back === '—' ? T('You\'re the big dog', 'Leading') : `${myRow.back} back`}` : '',
+      loserName: bottom ? bottom.name : '—', loserLine: bottom ? `${bottom.sw}-${bottom.sl} ${T('— buying the beer', 'on the season')}` : '',
+      rows, ...pastVals,
+      hasToast: !!toast, toast
+    };
+  }
+}
+</script>
+</body>
+</html>
