@@ -179,7 +179,7 @@
       </div>
       <div style="overflow-x:auto">
         <table class="table" style="font-size:16px">
-          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Win %</th><th style="text-align:right">Back</th></tr></thead>
+          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Back</th><th style="text-align:right">Won</th><th style="text-align:right">If it ends today</th></tr></thead>
           <tbody>
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
               <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
@@ -187,8 +187,9 @@
                 <td style="padding:10px 7px;font-size:17px">{{ r.name }} <span class="tag tag-accent" style="margin-left:6px;display:{{ r.tagDisplay }}">{{ r.tag }}</span></td>
                 <td style="text-align:right;padding:10px 7px">{{ r.week }}</td>
                 <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
-                <td style="text-align:right;padding:10px 7px">{{ r.pct }}</td>
                 <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.back }}</td>
+                <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-700)">{{ r.won }}</td>
+                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.proj }}</td>
               </tr>
             </sc-for>
           </tbody>
@@ -407,7 +408,7 @@
   </sc-if>
 
   <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-    <div role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--color-accent-900);color:var(--color-bg);padding:14px 20px;font-family:var(--font-heading);font-weight:600;font-size:18px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease-out;z-index:10">{{ toast }}</div>
+    <div role="status" onClick="{{ hideToast }}" style="position:fixed;left:50%;top:16px;transform:translateX(-50%);cursor:pointer;z-index:50;max-width:calc(100% - 32px);background:var(--color-accent-900);color:var(--color-bg);padding:14px 20px;font-family:var(--font-heading);font-weight:600;font-size:18px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease-out;z-index:10">{{ toast }}</div>
   </sc-if>
 </div>
 
@@ -564,6 +565,7 @@ class Component extends DCLogic {
   }
   setSetting(k, v) { const n = (k in TEXT_DEFAULTS) ? v : (v === '' ? '' : Number(v)); this.setState(s => ({ settings: { ...s.settings, [k]: n }, adminDirty: true }), () => { if (!this.sync) this.persist({}); }); }
   showToast(msg) { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 3200); }
+  hideToast() { clearTimeout(this.tt); this.setState({ toast: '' }); }
   renderVals() {
     const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
     const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools, authCode } = this.state;
@@ -609,10 +611,13 @@ class Component extends DCLogic {
     // standings
     const rowsRaw = players.map(p => { let sw = 0, sl = 0, lw = [0, 0]; finals.forEach((w, i) => { const r = this.record(p, w); sw += r[0]; sl += r[1]; if (i === finals.length - 1) lw = r; }); return { name: p, sw, sl, lw }; })
       .sort((a, b) => b.sw - a.sw || b.lw[0] - a.lw[0] || a.name.localeCompare(b.name));
+    const won = {}; players.forEach(p => won[p] = 0);
+    finals.forEach(w => { const recs = players.map(p => ({ p, w: this.record(p, w)[0] })), best = Math.max(0, ...recs.map(x => x.w)), ws = recs.filter(x => x.w === best); if (best > 0) ws.forEach(x => won[x.p] += weeklyPrize / ws.length); });
     const top = rowsRaw[0], bottom = rowsRaw[rowsRaw.length - 1];
     let rank = 0, prevW = -1;
     const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
       rank, name: r.name, week: `${r.lw[0]}-${r.lw[1]}`, season: `${r.sw}-${r.sl}`, pct: r.sw + r.sl ? Math.round(r.sw / (r.sw + r.sl) * 1000) / 10 + '%' : '—',
+      won: won[r.name] ? money(won[r.name]) : '—', proj: rank <= 3 && finals.length ? money(seasonPot * pct[rank - 1] / 100 / rowsRaw.filter(x => x.sw === r.sw).length) : '',
       back: (top ? top.sw : 0) - r.sw === 0 ? '—' : String((top ? top.sw : 0) - r.sw), bg: isMe ? 'var(--color-accent-100)' : 'transparent', weight: isMe ? '600' : '400',
       tag: isMe ? 'You' : (i === 0 ? T('Big dog', 'Leader') : i === rowsRaw.length - 1 ? T('Basement', 'Last') : ''), tagDisplay: isMe || i === 0 || i === rowsRaw.length - 1 ? 'inline-flex' : 'none' }; });
     const myRow = rows.find(r => r.name === me);
@@ -635,7 +640,7 @@ class Component extends DCLogic {
       players, me, setMe: e => this.persist({ me: e.target.value, dirty: false }),
       nflCls: cls(pool === 'nfl'), cfbCls: cls(pool === 'cfb'),
       pickNfl: () => this.setState({ pool: 'nfl', week: null, pastWeek: null }), pickCfb: () => this.setState({ pool: 'cfb', week: null, pastWeek: null }),
-      tabPicksCls: cls(tab === 'picks'), tabStandCls: cls(tab === 'stand'), tabPastCls: cls(tab === 'past'), tabPayCls: cls(tab === 'pay'), goPay: () => this.setState({ tab: 'pay' }), isPay: tab === 'pay',
+      hideToast: () => this.hideToast(), tabPicksCls: cls(tab === 'picks'), tabStandCls: cls(tab === 'stand'), tabPastCls: cls(tab === 'past'), tabPayCls: cls(tab === 'pay'), goPay: () => this.setState({ tab: 'pay' }), isPay: tab === 'pay',
       venmoHandle: String(settings.venmo || '').replace(/^@/, ''), venmoUrl: 'https://venmo.com/u/' + String(settings.venmo || '').replace(/^@/, ''), showQr: String(settings.venmo || '').replace(/^@/, '') === 'Beau-AD-Hill',
       sVenmo: settings.venmo || '', setVenmo: e => this.setSetting('venmo', e.target.value), sCode: settings.accessCode || '', setCode: e => this.setSetting('accessCode', e.target.value),
       authCode, setAuthCode: e => this.setState({ authCode: e.target.value, authError: '' }),
