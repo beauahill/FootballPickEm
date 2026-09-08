@@ -63,6 +63,7 @@
           </div>
           <span style="font-size:14px;color:var(--color-neutral-700)">You owe the commissioner {{ joinTotal }}.</span>
         </div>
+        <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">League access code</span><input class="input" value="{{ authCode }}" onChange="{{ setAuthCode }}" placeholder="From the commissioner" autoComplete="off" style="min-height:52px;font-size:20px"></label>
       </sc-if>
       <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;color:var(--color-accent-800)">{{ authError }}</div></sc-if>
       <button type="submit" class="btn btn-primary blueprint" disabled="{{ authBusy }}" style="min-height:56px;font-size:22px;border-color:var(--color-accent)">
@@ -83,9 +84,10 @@
     <button class="btn {{ cfbCls }}" onClick="{{ pickCfb }}" style="min-height:56px;font-size:22px">College Pool</button>
   </div>
 
-  <nav style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:28px">
+  <nav style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:28px">
     <button class="btn {{ tabPicksCls }}" onClick="{{ goPicks }}" style="min-height:48px;font-size:17px">Make Picks</button>
     <button class="btn {{ tabStandCls }}" onClick="{{ goStand }}" style="min-height:48px;font-size:17px">Standings</button>
+    <button class="btn {{ tabPayCls }}" onClick="{{ goPay }}" style="min-height:48px;font-size:17px">Payments</button>
     <button class="btn {{ tabPastCls }}" onClick="{{ goPast }}" style="min-height:48px;font-size:17px">Past Weeks</button>
     <button class="btn {{ tabAdminCls }}" onClick="{{ goAdmin }}" style="min-height:48px;font-size:17px">Admin</button>
   </nav>
@@ -137,19 +139,6 @@
         </div>
       </sc-if>
 
-      <div class="blueprint" style="margin-top:28px;padding:14px">
-        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:10px">
-          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Who's paid — {{ potLine }}</div>
-          <div style="font-size:13px;color:var(--color-neutral-700)">{{ unpaidLine }}</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px">
-          <sc-for list="{{ paidList }}" as="p" hint-placeholder-count="8">
-            <div style="display:flex;align-items:center;gap:8px;font-size:15px;min-height:28px"><span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{ p.color }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:{{ p.weight }}">{{ p.name }}</span></div>
-          </sc-for>
-        </div>
-      </div>
-
       <sc-if value="{{ weekOpen }}" hint-placeholder-val="{{ true }}">
         <div style="position:sticky;bottom:12px;margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:var(--shadow-md)">
           <div style="font-size:15px;color:var(--color-neutral-700)">{{ saveHint }}</div>
@@ -188,17 +177,6 @@
           <div style="font-size:14px;color:var(--color-neutral-700)">{{ loserLine }}</div>
         </div>
       </div>
-      <div class="blueprint" style="padding:14px;margin-bottom:24px">
-        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">Payouts</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
-          <div><div style="font-size:13px;color:var(--color-neutral-700)">Each week's winner</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ payWeekly }}</div></div>
-          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 1st</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay1 }}</div></div>
-          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 2nd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay2 }}</div></div>
-          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 3rd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay3 }}</div></div>
-        </div>
-        <div style="font-size:13px;color:var(--color-neutral-700);margin-top:8px">{{ payHint }}</div>
-      </div>
       <div style="overflow-x:auto">
         <table class="table" style="font-size:16px">
           <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Win %</th><th style="text-align:right">Back</th></tr></thead>
@@ -215,6 +193,53 @@
             </sc-for>
           </tbody>
         </table>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isPay }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Payments" style="display:grid;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+        <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0">Payments</h2>
+        <div style="font-size:15px;color:var(--color-neutral-700)">{{ myOwe }}</div>
+      </div>
+      <div class="blueprint" style="padding:16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:grid;gap:8px">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Pay the commissioner</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1.1">{{ feeLabel }} per pool</div>
+          <div style="font-size:15px;color:var(--color-neutral-700)">Venmo <strong>@{{ venmoHandle }}</strong> — put your name and the pool in the note so you turn green.</div>
+          <a class="btn btn-primary blueprint" href="{{ venmoUrl }}" target="_blank" rel="noopener" style="min-height:52px;font-size:20px;border-color:var(--color-accent);justify-self:start;padding:0 24px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            Open Venmo
+          </a>
+        </div>
+        <sc-if value="{{ showQr }}" hint-placeholder-val="{{ true }}">
+          <img src="assets/venmo-qr.png" alt="Venmo QR code for @{{ venmoHandle }}" style="width:180px;height:auto;max-width:100%;border:1px solid var(--color-divider)">
+        </sc-if>
+      </div>
+      <div class="blueprint" style="padding:14px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">Payouts</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Each week's winner</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ payWeekly }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 1st</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay1 }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 2nd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay2 }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 3rd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay3 }}</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--color-neutral-700);margin-top:8px">{{ payHint }}</div>
+      </div>
+      <div class="blueprint" style="padding:14px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:10px">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Who's paid — {{ potLine }}</div>
+          <div style="font-size:13px;color:var(--color-neutral-700)">{{ unpaidLine }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px">
+          <sc-for list="{{ paidList }}" as="p" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;min-height:28px"><span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{ p.color }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:{{ p.weight }}">{{ p.name }}</span></div>
+          </sc-for>
+        </div>
       </div>
     </section>
   </sc-if>
@@ -344,6 +369,10 @@
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 2nd %</span><input class="input" type="number" min="0" max="100" value="{{ sP2 }}" onChange="{{ setP2 }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 3rd %</span><input class="input" type="number" min="0" max="100" value="{{ sP3 }}" onChange="{{ setP3 }}" style="min-height:44px;font-size:18px"></label>
           </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">League access code (blank = anyone can register)</span><input class="input" value="{{ sCode }}" onChange="{{ setCode }}" placeholder="e.g. GOPOKES" autoComplete="off" style="min-height:44px;font-size:18px;font-family:var(--font-heading);font-weight:600;letter-spacing:.06em"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Venmo handle</span><input class="input" value="{{ sVenmo }}" onChange="{{ setVenmo }}" placeholder="Beau-AD-Hill" style="min-height:44px;font-size:18px"></label>
+          </div>
           <sc-if value="{{ hasPctWarn }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--color-accent-800)">{{ pctWarn }}</div></sc-if>
           <div style="font-size:14px;color:var(--color-neutral-700)">Right now for the {{ potLine }}: weekly winner {{ payWeekly }} · season {{ pay1 }} / {{ pay2 }} / {{ pay3 }}. <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">Use "Save changes to league" above to publish.</sc-if></div>
         </div>
@@ -381,8 +410,9 @@
     <div role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--color-accent-900);color:var(--color-bg);padding:14px 20px;font-family:var(--font-heading);font-weight:600;font-size:18px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease-out;z-index:10">{{ toast }}</div>
   </sc-if>
 </div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;apiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://script.google.com/macros/s/AKfycbxFgdYiHACVnw3QZ8OqRcy43B6ucGpjmMpfQgqjQ_bdHV9nAsQtiME72UWPrh_LRfRA/exec&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;,&quot;label&quot;:&quot;API URL (Google Apps Script /exec)&quot;},&quot;leagueName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Anschutz Oil Trash Pick Em&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;},&quot;trashTalk&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;tiebreaker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rules&quot;},&quot;adminPin&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2971&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Admin&quot;,&quot;label&quot;:&quot;Admin PIN (demo mode only)&quot;}}">
+
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d2d3d"></rect><ellipse cx="50" cy="50" rx="22" ry="13" fill="none" stroke="#f2f2f3" stroke-width="3" transform="rotate(-30 50 50)"></ellipse><line x1="42" y1="55" x2="58" y2="45" stroke="#f2f2f3" stroke-width="2.5"></line></svg></template></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;apiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://script.google.com/macros/s/AKfycbxFgdYiHACVnw3QZ8OqRcy43B6ucGpjmMpfQgqjQ_bdHV9nAsQtiME72UWPrh_LRfRA/exec&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;,&quot;label&quot;:&quot;API URL (Google Apps Script /exec)&quot;},&quot;leagueName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Anschutz Pick Em&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;},&quot;trashTalk&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;tiebreaker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rules&quot;},&quot;adminPin&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2971&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Admin&quot;,&quot;label&quot;:&quot;Admin PIN (demo mode only)&quot;}}">
 const G = (id, away, home, when, as, hs) => ({ id, away, home, when, as, hs });
 const POOLS = {
   nfl: { label: 'NFL', weeks: [
@@ -424,6 +454,7 @@ const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', 
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
 const KEY = 'pickem.v1';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
+const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
 const demoRoster = names => names.map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: ['nfl', 'cfb'].filter(p => (hash(n + p) % 5) !== 0) }));
 const hash = s => { let x = 7; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
@@ -440,14 +471,14 @@ class Component extends DCLogic {
     try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
     const players = store.players && store.players.length ? store.players : PLAYERS;
     const roster = store.roster && store.roster.length ? store.roster : demoRoster(players);
-    const settings = { ...PAYOUT_DEFAULTS, ...(store.settings || {}) };
+    const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
-    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
+    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
       session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '' };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
   componentDidMount() { if (this.sync) this.load(); }
-  componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) this.load(); else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, roster: demoRoster(PLAYERS), settings: { ...PAYOUT_DEFAULTS }, picks: {}, tb: {} }); } }
+  componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) this.load(); else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, roster: demoRoster(PLAYERS), settings: { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS }, picks: {}, tb: {} }); } }
   async api(body) {
     const url = this.props.apiUrl.trim();
     const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state');
@@ -459,7 +490,8 @@ class Component extends DCLogic {
     if (!j.data || !j.data.nfl || !j.data.cfb) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
     const me = this.state.session ? this.state.session.name : '';
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
-    const settings = { ...PAYOUT_DEFAULTS }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
+    const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, accessCode: this.state.settings.accessCode }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
+    if (j.settings && j.settings.venmo != null) settings.venmo = String(j.settings.venmo);
     this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: [] })), settings, picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
@@ -530,11 +562,11 @@ class Component extends DCLogic {
     const roster = this.state.roster.map(p => p.name !== name ? p : { ...p, pools: paid && !p.pools.includes(pool) ? p.pools.concat(pool) : p.pools, paid: paid ? p.paid.filter(x => x !== pool).concat(pool) : p.paid.filter(x => x !== pool) });
     this.persist({ roster });
   }
-  setSetting(k, v) { const n = v === '' ? '' : Number(v); this.setState(s => ({ settings: { ...s.settings, [k]: n }, adminDirty: true }), () => { if (!this.sync) this.persist({}); }); }
+  setSetting(k, v) { const n = (k in TEXT_DEFAULTS) ? v : (v === '' ? '' : Number(v)); this.setState(s => ({ settings: { ...s.settings, [k]: n }, adminDirty: true }), () => { if (!this.sync) this.persist({}); }); }
   showToast(msg) { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 3200); }
   renderVals() {
     const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
-    const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools } = this.state;
+    const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools, authCode } = this.state;
     const sync = this.sync, me = sync ? (session ? session.name : '') : this.state.me;
     const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
     const players = allPlayers.filter(inPool);
@@ -603,7 +635,11 @@ class Component extends DCLogic {
       players, me, setMe: e => this.persist({ me: e.target.value, dirty: false }),
       nflCls: cls(pool === 'nfl'), cfbCls: cls(pool === 'cfb'),
       pickNfl: () => this.setState({ pool: 'nfl', week: null, pastWeek: null }), pickCfb: () => this.setState({ pool: 'cfb', week: null, pastWeek: null }),
-      tabPicksCls: cls(tab === 'picks'), tabStandCls: cls(tab === 'stand'), tabPastCls: cls(tab === 'past'),
+      tabPicksCls: cls(tab === 'picks'), tabStandCls: cls(tab === 'stand'), tabPastCls: cls(tab === 'past'), tabPayCls: cls(tab === 'pay'), goPay: () => this.setState({ tab: 'pay' }), isPay: tab === 'pay',
+      venmoHandle: String(settings.venmo || '').replace(/^@/, ''), venmoUrl: 'https://venmo.com/u/' + String(settings.venmo || '').replace(/^@/, ''), showQr: String(settings.venmo || '').replace(/^@/, '') === 'Beau-AD-Hill',
+      sVenmo: settings.venmo || '', setVenmo: e => this.setSetting('venmo', e.target.value), sCode: settings.accessCode || '', setCode: e => this.setSetting('accessCode', e.target.value),
+      authCode, setAuthCode: e => this.setState({ authCode: e.target.value, authError: '' }),
+      myOwe: (() => { const p = rosterOf(me); if (!p) return ''; const owed = p.pools.filter(x => !p.paid.includes(x)); return owed.length ? `You owe ${money(fee * owed.length)} (${owed.map(x => x === 'nfl' ? 'NFL' : 'College').join(' + ')}).` : T('You\'re paid up. Rare.', 'You are paid in full.'); })(),
       goPicks: () => this.setState({ tab: 'picks' }), goStand: () => this.setState({ tab: 'stand' }), goPast: () => this.setState({ tab: 'past' }),
       isPicks: tab === 'picks', isStand: tab === 'stand', isPast: tab === 'past',
       weekNum: week.n, prevWeek: () => this.setState({ week: wi - 1 }), nextWeek: () => this.setState({ week: wi + 1 }), noPrev: wi === 0, noNext: wi === weeks.length - 1,
@@ -622,7 +658,7 @@ class Component extends DCLogic {
       tabAdminCls: cls(tab === 'admin'), goAdmin: () => this.setState({ tab: 'admin' }), isAdmin: tab === 'admin',
       adminOk, adminLocked: !adminOk, pin, pinError, setPin: e => this.setState({ pin: e.target.value, pinError: false }),
       pinSubmit: e => { e.preventDefault(); if (!sync) { if (pin === String(this.props.adminPin ?? '1234')) this.setState({ adminOk: true, pin: '' }); else this.setState({ pinError: true }); return; }
-        this.setState({ busy: 'pin' }); this.api({ action: 'admin', op: 'auth', adminPin: pin }).then(() => this.setState({ adminOk: true, adminPin: pin, pin: '', busy: '' })).catch(e => { this.setState({ pinError: true, busy: '' }); if (!/admin PIN/i.test(e.message)) this.showToast(e.message); }); },
+        this.setState({ busy: 'pin' }); this.api({ action: 'admin', op: 'auth', adminPin: pin }).then(j => this.setState(st => ({ adminOk: true, adminPin: pin, pin: '', busy: '', settings: { ...st.settings, accessCode: j.accessCode || '' } }))).catch(e => { this.setState({ pinError: true, busy: '' }); if (!/admin PIN/i.test(e.message)) this.showToast(e.message); }); },
       isSync: sync, isDemo: !sync, busyAny: !!busy, adminPicker: !sync && adminOk, showIdentity: sync ? !!session : !adminOk,
       adminSave: () => this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks, settings: this.state.settings }, 'Saved to the league sheet'),
       adminSaveDisabled: !adminDirty || !!busy, adminSaveLabel: busy === 'setPool' ? 'Saving…' : (adminDirty ? 'Save changes to league' : 'All changes saved'),
@@ -661,7 +697,7 @@ class Component extends DCLogic {
       authSubmit: e => { e.preventDefault(); const name = authName.trim(), email = authEmail.trim().toLowerCase();
         if (!email || !authPin || (authMode === 'register' && !name)) { this.setState({ authError: authMode === 'register' ? 'Need a name, email and PIN.' : 'Need both email and PIN.' }); return; }
         this.setState({ busy: 'auth' }); const pools = ['nfl', 'cfb'].filter(k => authPools[k]); if (authMode === 'register' && !pools.length) { this.setState({ authError: 'Pick at least one pool.' }); return; }
-        this.api({ action: authMode, name, email, pin: authPin, pools }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
+        this.api({ action: authMode, name, email, pin: authPin, pools, code: authCode.trim() }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
       signOut: () => this.setSession(null),
       lockAdmin: () => this.setState({ adminOk: false }),
       adminGames, weekStatus: weekFinal ? 'All scores in — this week counts in standings.' : week.games.length ? 'Leave scores blank until the game is over. The week counts once every score is in.' : 'No games yet. Add one below.',

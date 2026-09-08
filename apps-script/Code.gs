@@ -19,6 +19,8 @@ function setup() {
 // Payout settings (editable in the page's Admin, stored in the Settings tab): entry fee per pool, % of the pot
 // reserved for weekly winners (split evenly across the season's weeks), weeks per pool, and the season split.
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
+// Text settings: accessCode gates registration (blank = open); venmo is the commissioner's handle shown on the Payments tab.
+const TEXT_SETTINGS = { accessCode: '', venmo: '' };
 const split_ = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 // Run once after pasting new code: makes Google ask for permission to reach ESPN, and prints how many games it sees.
 function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachable — ' + n + ' NFL week 1 games'); return n; }
@@ -43,6 +45,7 @@ function state_() {
   const tb = {}; rows_('Tiebreaks').forEach(t => tb[t.player + '|' + t.key] = t.value);
   const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid) }));
   const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
+  settings.venmo = setting_('venmo');   // accessCode is deliberately NOT sent — admins see it via the 'auth' op
   return { data: { nfl: pool_('nfl'), cfb: pool_('cfb') }, players: roster.map(p => p.name), roster, settings, picks, tb };
 }
 function pool_(pool) {
@@ -71,6 +74,7 @@ function handle_(b) {
       if (name.length < 2) throw new Error('Name too short');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('That email doesn\'t look right');
       if (!/^\d{4,}$/.test(String(b.pin))) throw new Error('PIN must be at least 4 digits');
+      const code = setting_('accessCode'); if (code && norm(b.code) !== norm(code)) throw new Error('Wrong league access code. Ask the commissioner.');
       if (findName(name)) throw new Error('That name is taken — add a last initial');
       if (findEmail(email)) throw new Error('That email is already registered. Sign in instead.');
       const pools = (Array.isArray(b.pools) ? b.pools : ['nfl', 'cfb']).filter(p => p === 'nfl' || p === 'cfb');
@@ -102,10 +106,11 @@ function handle_(b) {
 }
 function admin_(b) {
   switch (b.op) {
-    case 'auth': return { ok: true };
+    case 'auth': return { ok: true, accessCode: setting_('accessCode') };
     case 'setPool': {
       if (b.weeks) savePool_(b.pool, b.weeks);
-      if (b.settings) Object.keys(PAYOUT_DEFAULTS).forEach(k => { if (b.settings[k] != null && b.settings[k] !== '') setSetting_(k, String(Number(b.settings[k]))); });
+      if (b.settings) { Object.keys(PAYOUT_DEFAULTS).forEach(k => { if (b.settings[k] != null && b.settings[k] !== '') setSetting_(k, String(Number(b.settings[k]))); });
+        Object.keys(TEXT_SETTINGS).forEach(k => { if (b.settings[k] != null) setSetting_(k, String(b.settings[k]).trim()); }); }
       return { ok: true, ...state_() };
     }
     case 'setPaid': {
