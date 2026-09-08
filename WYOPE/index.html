@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!manifestEl || !templateEl) {
       setStatus('Error: missing bundle data');
       console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
-      return;
+      return; 
     }
 
     const manifest = JSON.parse(manifestEl.textContent);
