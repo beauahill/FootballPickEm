@@ -2,7 +2,7 @@
 const TZ = 'America/Denver';   // kickoff times are shown in this time zone
 const SEASON = 2026;
 const HEADERS = {
-  Players: ['name', 'email', 'pin', 'joined'],
+  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid'],
   Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
@@ -14,7 +14,12 @@ function setup() {
   Object.keys(HEADERS).forEach(n => sheet_(n));
   if (!setting_('adminPin')) setSetting_('adminPin', '1234');
   ['nfl', 'cfb'].forEach(p => { if (!setting_('weeks_' + p)) setSetting_('weeks_' + p, '1'); });
+  Object.entries(PAYOUT_DEFAULTS).forEach(([k, v]) => { if (!setting_(k)) setSetting_(k, String(v)); });
 }
+// Payout settings (editable in the page's Admin, stored in the Settings tab): entry fee per pool, % of the pot
+// reserved for weekly winners (split evenly across the season's weeks), weeks per pool, and the season split.
+const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
+const split_ = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 // Run once after pasting new code: makes Google ask for permission to reach ESPN, and prints how many games it sees.
 function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachable — ' + n + ' NFL week 1 games'); return n; }
 // Run once: pulls final scores from ESPN every hour for any week with games still unscored.
@@ -36,7 +41,9 @@ function doPost(e) { try { return out_(handle_(JSON.parse(e.postData.contents ||
 function state_() {
   const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = p.pick);
   const tb = {}; rows_('Tiebreaks').forEach(t => tb[t.player + '|' + t.key] = t.value);
-  return { data: { nfl: pool_('nfl'), cfb: pool_('cfb') }, players: rows_('Players').map(p => String(p.name)), picks, tb };
+  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid) }));
+  const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
+  return { data: { nfl: pool_('nfl'), cfb: pool_('cfb') }, players: roster.map(p => p.name), roster, settings, picks, tb };
 }
 function pool_(pool) {
   const gs = rows_('Games').filter(g => g.pool === pool);
@@ -66,7 +73,9 @@ function handle_(b) {
       if (!/^\d{4,}$/.test(String(b.pin))) throw new Error('PIN must be at least 4 digits');
       if (findName(name)) throw new Error('That name is taken — add a last initial');
       if (findEmail(email)) throw new Error('That email is already registered. Sign in instead.');
-      sheet_('Players').appendRow([name, email, String(b.pin), new Date()]);
+      const pools = (Array.isArray(b.pools) ? b.pools : ['nfl', 'cfb']).filter(p => p === 'nfl' || p === 'cfb');
+      if (!pools.length) throw new Error('Pick at least one pool');
+      sheet_('Players').appendRow([name, email, String(b.pin), new Date(), pools.join(','), '']);
       return { ok: true, name, email };
     }
     case 'login': { const p = auth(); return { ok: true, name: String(p.name), email: String(p.email) }; }
@@ -94,7 +103,21 @@ function handle_(b) {
 function admin_(b) {
   switch (b.op) {
     case 'auth': return { ok: true };
-    case 'setPool': savePool_(b.pool, b.weeks); return { ok: true, ...state_() };
+    case 'setPool': {
+      if (b.weeks) savePool_(b.pool, b.weeks);
+      if (b.settings) Object.keys(PAYOUT_DEFAULTS).forEach(k => { if (b.settings[k] != null && b.settings[k] !== '') setSetting_(k, String(Number(b.settings[k]))); });
+      return { ok: true, ...state_() };
+    }
+    case 'setPaid': {
+      const all = rows_('Players'); const p = all.find(x => String(x.name) === b.name); if (!p) throw new Error('No such player');
+      let paid = split_(p.paid).filter(x => x !== b.pool); if (b.paid) paid.push(b.pool); p.paid = paid.join(',');
+      if (b.paid && !split_(p.pools).includes(b.pool)) p.pools = split_(p.pools).concat(b.pool).join(',');
+      writeAll_('Players', all); return { ok: true, ...state_() };
+    }
+    case 'setPools': {
+      const all = rows_('Players'); const p = all.find(x => String(x.name) === b.name); if (!p) throw new Error('No such player');
+      p.pools = (b.pools || []).filter(x => x === 'nfl' || x === 'cfb').join(','); writeAll_('Players', all); return { ok: true, ...state_() };
+    }
     case 'removePlayer':
       writeAll_('Players', rows_('Players').filter(p => String(p.name) !== b.name));
       writeAll_('Picks', rows_('Picks').filter(p => String(p.player) !== b.name));

@@ -20,6 +20,9 @@ Open the page's Tweaks and paste the URL into **API URL**. Everyone who opens yo
 3. **+ Add week** as the season goes on.
 4. **Pull final scores now** fills in every finished game from ESPN. The hourly auto-pull does the same in the background when Google can reach ESPN.
 
+## Money
+Players choose their pools when they register (entry fee per pool, default $100). Admin marks each player Paid / Unpaid per pool and sets the payout structure: a share of the pot goes to weekly winners (split evenly over the season's weeks), the rest to the season's top three (default 70 / 20 / 10). The page shows the pot and payouts based on money actually collected.
+
 ## Players
 Everyone registers once with their name, email and a 4+ digit PIN; after that they sign in with email + PIN. The name is what shows on the board. PINs are stored plainly in the Players tab — the commissioner can look one up if someone forgets. Admin can remove a player.
 

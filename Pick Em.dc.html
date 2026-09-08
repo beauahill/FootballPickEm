@@ -22,6 +22,11 @@
     <div>
       <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:4px">{{ seasonLabel }}</div>
       <h1 style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin:0">{{ leagueName }}</h1>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:8px;font-family:var(--font-heading);font-weight:600;font-size:20px;line-height:1.1">
+        <span style="color:var(--color-accent-700)">{{ potLine }}</span>
+        <span><span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);margin-right:6px">Weekly</span>{{ payWeekly }}</span>
+        <span><span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);margin-right:6px">Season</span>{{ pay1 }} / {{ pay2 }} / {{ pay3 }}</span>
+      </div>
     </div>
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:12px">
@@ -49,6 +54,16 @@
       </sc-if>
       <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Email</span><input class="input" type="email" value="{{ authEmail }}" onChange="{{ setAuthEmail }}" placeholder="you@example.com" autoComplete="email" style="min-height:52px;font-size:20px"></label>
       <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">PIN</span><input class="input" type="password" inputMode="numeric" value="{{ authPin }}" onChange="{{ setAuthPin }}" placeholder="4+ digits" autoComplete="current-password" style="min-height:52px;font-size:24px;letter-spacing:.3em"></label>
+      <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Which pools are you in? ({{ feeLabel }} each)</span>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+            <button type="button" class="btn {{ nflJoinCls }}" onClick="{{ toggleNfl }}" style="min-height:52px;font-size:18px">NFL</button>
+            <button type="button" class="btn {{ cfbJoinCls }}" onClick="{{ toggleCfb }}" style="min-height:52px;font-size:18px">College</button>
+          </div>
+          <span style="font-size:14px;color:var(--color-neutral-700)">You owe the commissioner {{ joinTotal }}.</span>
+        </div>
+      </sc-if>
       <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;color:var(--color-accent-800)">{{ authError }}</div></sc-if>
       <button type="submit" class="btn btn-primary blueprint" disabled="{{ authBusy }}" style="min-height:56px;font-size:22px;border-color:var(--color-accent)">
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -122,6 +137,19 @@
         </div>
       </sc-if>
 
+      <div class="blueprint" style="margin-top:28px;padding:14px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:10px">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Who's paid — {{ potLine }}</div>
+          <div style="font-size:13px;color:var(--color-neutral-700)">{{ unpaidLine }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px">
+          <sc-for list="{{ paidList }}" as="p" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;min-height:28px"><span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{ p.color }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:{{ p.weight }}">{{ p.name }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+
       <sc-if value="{{ weekOpen }}" hint-placeholder-val="{{ true }}">
         <div style="position:sticky;bottom:12px;margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:var(--shadow-md)">
           <div style="font-size:15px;color:var(--color-neutral-700)">{{ saveHint }}</div>
@@ -159,6 +187,17 @@
           <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ loserName }}</div>
           <div style="font-size:14px;color:var(--color-neutral-700)">{{ loserLine }}</div>
         </div>
+      </div>
+      <div class="blueprint" style="padding:14px;margin-bottom:24px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">Payouts</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Each week's winner</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ payWeekly }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 1st</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay1 }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 2nd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay2 }}</div></div>
+          <div><div style="font-size:13px;color:var(--color-neutral-700)">Season 3rd</div><div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">{{ pay3 }}</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--color-neutral-700);margin-top:8px">{{ payHint }}</div>
       </div>
       <div style="overflow-x:auto">
         <table class="table" style="font-size:16px">
@@ -293,22 +332,41 @@
             </button>
           </div>
         </sc-if>
+        <div class="blueprint" style="margin-top:32px;padding:16px;display:grid;gap:12px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Money &amp; payouts</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Entry fee per pool ($)</span><input class="input" type="number" min="0" value="{{ sEntry }}" onChange="{{ setEntry }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">% of pot to weekly winners</span><input class="input" type="number" min="0" max="100" value="{{ sWeekly }}" onChange="{{ setWeekly }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">NFL weeks in season</span><input class="input" type="number" min="1" value="{{ sWeeksNfl }}" onChange="{{ setWeeksNfl }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">College weeks in season</span><input class="input" type="number" min="1" value="{{ sWeeksCfb }}" onChange="{{ setWeeksCfb }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 1st %</span><input class="input" type="number" min="0" max="100" value="{{ sP1 }}" onChange="{{ setP1 }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 2nd %</span><input class="input" type="number" min="0" max="100" value="{{ sP2 }}" onChange="{{ setP2 }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 3rd %</span><input class="input" type="number" min="0" max="100" value="{{ sP3 }}" onChange="{{ setP3 }}" style="min-height:44px;font-size:18px"></label>
+          </div>
+          <sc-if value="{{ hasPctWarn }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--color-accent-800)">{{ pctWarn }}</div></sc-if>
+          <div style="font-size:14px;color:var(--color-neutral-700)">Right now for the {{ potLine }}: weekly winner {{ payWeekly }} · season {{ pay1 }} / {{ pay2 }} / {{ pay3 }}. <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">Use "Save changes to league" above to publish.</sc-if></div>
+        </div>
         <div class="blueprint" style="margin-top:32px;padding:16px;display:grid;gap:10px">
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
-            <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Players ({{ playerCount }})</h3>
+            <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Players &amp; payments ({{ playerCount }})</h3>
             <span style="font-size:14px;color:var(--color-neutral-700)">{{ playersHint }}</span>
           </div>
           <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ true }}">
             <textarea class="input" rows="10" defaultValue="{{ playersText }}" onBlur="{{ setPlayers }}" style="font-size:16px;line-height:1.6;min-height:200px"></textarea>
           </sc-if>
-          <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
-              <sc-for list="{{ playerList }}" as="p" hint-placeholder-count="4">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--color-divider);padding:6px 6px 6px 12px;font-size:16px"><span>{{ p.name }}</span><button class="btn btn-ghost btn-icon" onClick="{{ p.remove }}" aria-label="Remove player" style="width:36px;height:36px;font-size:18px">×</button></div>
-              </sc-for>
-            </div>
-          </sc-if>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 40px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);padding:0 4px"><span>Player</span><span>NFL</span><span>College</span><span></span></div>
+          <div style="display:grid;gap:6px">
+            <sc-for list="{{ playerList }}" as="p" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 40px;gap:8px;align-items:center;border:1px solid var(--color-divider);padding:6px 6px 6px 12px;font-size:16px">
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+                <button class="btn {{ p.nfl.cls }}" onClick="{{ p.nfl.toggle }}" style="opacity:{{ p.nfl.op }};min-height:40px;font-size:14px;padding:0 8px">{{ p.nfl.label }}</button>
+                <button class="btn {{ p.cfb.cls }}" onClick="{{ p.cfb.toggle }}" style="opacity:{{ p.cfb.op }};min-height:40px;font-size:14px;padding:0 8px">{{ p.cfb.label }}</button>
+                <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost btn-icon" onClick="{{ p.remove }}" aria-label="Remove player" style="width:36px;height:36px;font-size:18px">×</button></sc-if>
+              </div>
+            </sc-for>
+          </div>
         </div>
         <div style="margin-top:24px;display:flex;justify-content:flex-end">
           <button class="btn btn-ghost" onClick="{{ resetAll }}" disabled="{{ isSync }}" style="min-height:44px;font-size:15px">Reset to sample data</button>
@@ -365,6 +423,9 @@ const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', 
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
 const KEY = 'pickem.v1';
+const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
+const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
+const demoRoster = names => names.map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: ['nfl', 'cfb'].filter(p => (hash(n + p) % 5) !== 0) }));
 const hash = s => { let x = 7; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
 const simPick = (p, g) => (hash(p + '|' + g.id) % 100) < 55 ? g.home : g.away;
 const scored = g => g.as != null && g.hs != null && g.as !== '' && g.hs !== '';
@@ -378,13 +439,15 @@ class Component extends DCLogic {
     let store = {};
     try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
     const players = store.players && store.players.length ? store.players : PLAYERS;
+    const roster = store.roster && store.roster.length ? store.roster : demoRoster(players);
+    const settings = { ...PAYOUT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
-    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
+    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
       session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '' };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
-  componentDidMount() { if (this.sync && this.state.session) this.load(); }
-  componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) { if (this.state.session) this.load(); } else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, picks: {}, tb: {} }); } }
+  componentDidMount() { if (this.sync) this.load(); }
+  componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) this.load(); else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, roster: demoRoster(PLAYERS), settings: { ...PAYOUT_DEFAULTS }, picks: {}, tb: {} }); } }
   async api(body) {
     const url = this.props.apiUrl.trim();
     const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state');
@@ -396,7 +459,8 @@ class Component extends DCLogic {
     if (!j.data || !j.data.nfl || !j.data.cfb) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
     const me = this.state.session ? this.state.session.name : '';
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
-    this.setState({ data: j.data, players: j.players || [], picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
+    const settings = { ...PAYOUT_DEFAULTS }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
+    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: [] })), settings, picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
   setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
@@ -407,8 +471,8 @@ class Component extends DCLogic {
   }
   persist(extra) {
     this.setState(extra, () => {
-      const { me, picks, tb, data, players } = this.state;
-      try { localStorage.setItem(KEY, JSON.stringify({ me, picks, tb, data, players })); } catch (e) {}
+      const { me, picks, tb, data, players, roster, settings } = this.state;
+      try { localStorage.setItem(KEY, JSON.stringify({ me, picks, tb, data, players, roster, settings })); } catch (e) {}
     });
   }
   pickFor(player, g, weekIsFinal) {
@@ -460,12 +524,24 @@ class Component extends DCLogic {
     if (mm) { const n = Number(mm[2]); if (mm[1] === homeAbbr) return n; if (mm[1] === awayAbbr) return -n; }
     return sp != null && !Number.isNaN(sp) ? sp : null;
   }
-  finishAdmin(pool, msg) { if (this.sync) this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks }, msg); else { this.setState({ busy: '' }); this.showToast(msg); } }
+  finishAdmin(pool, msg) { if (this.sync) this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks, settings: this.state.settings }, msg); else { this.setState({ busy: '' }); this.showToast(msg); } }
+  setPaid(name, pool, paid) {
+    if (this.sync) { this.adminOp('setPaid', { name, pool, paid }, `${name}: ${pool === 'nfl' ? 'NFL' : 'College'} ${paid ? 'paid' : 'unpaid'}`); return; }
+    const roster = this.state.roster.map(p => p.name !== name ? p : { ...p, pools: paid && !p.pools.includes(pool) ? p.pools.concat(pool) : p.pools, paid: paid ? p.paid.filter(x => x !== pool).concat(pool) : p.paid.filter(x => x !== pool) });
+    this.persist({ roster });
+  }
+  setSetting(k, v) { const n = v === '' ? '' : Number(v); this.setState(s => ({ settings: { ...s.settings, [k]: n }, adminDirty: true }), () => { if (!this.sync) this.persist({}); }); }
   showToast(msg) { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 3200); }
   renderVals() {
     const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
-    const { pool, tab, picks, tb, dirty, toast, players, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy } = this.state;
+    const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools } = this.state;
     const sync = this.sync, me = sync ? (session ? session.name : '') : this.state.me;
+    const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
+    const players = allPlayers.filter(inPool);
+    const fee = Number(settings.entryFee) || 0, paidNames = players.filter(n => { const p = rosterOf(n); return p && p.paid.includes(pool); });
+    const pot = fee * paidNames.length, weeksN = Math.max(1, Number(pool === 'nfl' ? settings.weeksNfl : settings.weeksCfb) || 1), wShare = Math.min(100, Math.max(0, Number(settings.weeklyShare) || 0));
+    const weeklyPrize = pot * wShare / 100 / weeksN, seasonPot = pot * (100 - wShare) / 100;
+    const pct = [Number(settings.pct1) || 0, Number(settings.pct2) || 0, Number(settings.pct3) || 0], pctOk = pct[0] + pct[1] + pct[2] === 100;
     const P = (this.state.data && this.state.data[pool]) || { weeks: [] }; if (!P.weeks || !P.weeks.length) P.weeks = [{ n: 1, games: [] }]; const weeks = P.weeks;
     const finals = weeks.filter(isFinal), openIdx = weeks.findIndex(w => !isFinal(w));
     const wi = this.state.week ?? (openIdx < 0 ? weeks.length - 1 : openIdx);
@@ -516,7 +592,7 @@ class Component extends DCLogic {
       const best = recs[0] || { p: '—', r: [0, 0] }, worst = recs[recs.length - 1] || best, meRec = recs.find(x => x.p === me), myR = meRec ? meRec.r : [0, 0];
       pastVals = { hasPast: true, noPast: false, pastWeekNum: pw.n,
         finalWeeks: finals.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
-        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]}. ${T('Insufferable all week.', 'Best record this week.')}`,
+        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize)}. ${T('Insufferable all week.', 'Best record this week.')}`,
         pastLoser: worst.p, pastLoserLine: `${worst.r[0]}-${worst.r[1]}. ${T('Coin flips would\'ve done better.', 'Worst record this week.')}`,
         pastMyRecord: `${myR[0]}-${myR[1]}`, pastMyLine: myR[0] === best.r[0] ? T('Top of the pile. Enjoy it.', 'Tied for the top.') : myR[0] === worst.r[0] ? T('Rock bottom. Nowhere to go but up.', 'Bottom of the week.') : `${best.r[0] - myR[0]} ${T('back of the big dog', 'behind the leader')}`,
         pastGames: pw.games.map(g => { const win = winner(g), mine = this.pickFor(me, g, true); const pct = Math.round(players.filter(p => this.pickFor(p, g, true) === win).length / players.length * 100);
@@ -548,7 +624,7 @@ class Component extends DCLogic {
       pinSubmit: e => { e.preventDefault(); if (!sync) { if (pin === String(this.props.adminPin ?? '1234')) this.setState({ adminOk: true, pin: '' }); else this.setState({ pinError: true }); return; }
         this.setState({ busy: 'pin' }); this.api({ action: 'admin', op: 'auth', adminPin: pin }).then(() => this.setState({ adminOk: true, adminPin: pin, pin: '', busy: '' })).catch(e => { this.setState({ pinError: true, busy: '' }); if (!/admin PIN/i.test(e.message)) this.showToast(e.message); }); },
       isSync: sync, isDemo: !sync, busyAny: !!busy, adminPicker: !sync && adminOk, showIdentity: sync ? !!session : !adminOk,
-      adminSave: () => this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks }, 'Saved to the league sheet'),
+      adminSave: () => this.adminOp('setPool', { pool, weeks: this.state.data[pool].weeks, settings: this.state.settings }, 'Saved to the league sheet'),
       adminSaveDisabled: !adminDirty || !!busy, adminSaveLabel: busy === 'setPool' ? 'Saving…' : (adminDirty ? 'Save changes to league' : 'All changes saved'),
       adminSaveHint: sync ? (adminDirty ? 'You have unsaved changes.' : '') : 'Changes save automatically.',
       importWeek: async () => { this.setState({ busy: 'importWeek' }); try {
@@ -562,7 +638,19 @@ class Component extends DCLogic {
             if (m && m.spread != null && g.as == null && g.hs == null && g.spread !== m.spread) { g.spread = m.spread; sp++; }
             if (m && m.final && (g.as !== m.as || g.hs !== m.hs)) { g.as = m.as; g.hs = m.hs; g.espnId = m.espnId; n++; } }); }, () => this.finishAdmin(pool, n || sp ? `Updated ${n} score${n === 1 ? '' : 's'}${sp ? `, ${sp} line${sp === 1 ? '' : 's'}` : ''}` : (ev.some(x => x.spread != null) ? 'No new final scores or line changes' : 'Scores unchanged — ESPN returned no lines for this week')));
         } catch (e) { this.setState({ busy: '' }); this.showToast('Couldn\'t reach ESPN: ' + e.message); } },
-      playerList: players.map(p => ({ name: p, remove: () => { if (confirm(`Remove ${p} and all their picks?`)) this.adminOp('removePlayer', { name: p }, `${p} removed`); } })),
+      playerList: allPlayers.map(n => { const p = rosterOf(n) || { pools: ['nfl', 'cfb'], paid: [] }; const cell = pl => { const inP = p.pools.includes(pl), paid = p.paid.includes(pl); return { label: !inP ? 'Not in' : paid ? 'Paid ✓' : 'Unpaid', cls: paid ? 'btn-primary' : 'btn-secondary', op: inP ? '1' : '.45', toggle: () => this.setPaid(n, pl, !paid) }; };
+        return { name: n, nfl: cell('nfl'), cfb: cell('cfb'), remove: () => { if (!sync) return; if (confirm(`Remove ${n} and all their picks?`)) this.adminOp('removePlayer', { name: n }, `${n} removed`); } }; }),
+      potLine: `${P.label} pot ${money(pot)} · ${paidNames.length} of ${players.length} paid`,
+      paidList: players.slice().sort((a, b) => { const pa = paidNames.includes(a), pb = paidNames.includes(b); return pa === pb ? a.localeCompare(b) : (pa ? 1 : -1); }).map(n => { const paid = paidNames.includes(n); return { name: n, color: paid ? '#2e7d4f' : '#c0392b', weight: n === me ? '600' : '400' }; }),
+      unpaidLine: players.length - paidNames.length === 0 ? T('Everybody\'s square. Miracle.', 'Everyone has paid.') : T(`${players.length - paidNames.length} still owe ${money(fee)}. Red means pay the man.`, `${players.length - paidNames.length} unpaid · ${money(fee)} each.`),
+      payWeekly: money(weeklyPrize), pay1: money(seasonPot * pct[0] / 100), pay2: money(seasonPot * pct[1] / 100), pay3: money(seasonPot * pct[2] / 100),
+      payHint: `Based on ${money(pot)} collected. ${wShare}% goes to weekly winners (${money(weeklyPrize)} × ${weeksN} weeks, ties split), the rest to the season's top three.`,
+      pctWarn: pctOk ? '' : `1st + 2nd + 3rd add up to ${pct[0] + pct[1] + pct[2]}%, not 100%.`, hasPctWarn: !pctOk,
+      sEntry: settings.entryFee, sWeekly: settings.weeklyShare, sWeeksNfl: settings.weeksNfl, sWeeksCfb: settings.weeksCfb, sP1: settings.pct1, sP2: settings.pct2, sP3: settings.pct3,
+      setEntry: e => this.setSetting('entryFee', e.target.value), setWeekly: e => this.setSetting('weeklyShare', e.target.value), setWeeksNfl: e => this.setSetting('weeksNfl', e.target.value), setWeeksCfb: e => this.setSetting('weeksCfb', e.target.value),
+      setP1: e => this.setSetting('pct1', e.target.value), setP2: e => this.setSetting('pct2', e.target.value), setP3: e => this.setSetting('pct3', e.target.value),
+      feeLabel: money(fee), nflJoinCls: cls(!!authPools.nfl), cfbJoinCls: cls(!!authPools.cfb), toggleNfl: () => this.setState(s => ({ authPools: { ...s.authPools, nfl: !s.authPools.nfl } })), toggleCfb: () => this.setState(s => ({ authPools: { ...s.authPools, cfb: !s.authPools.cfb } })),
+      joinTotal: money(fee * ((authPools.nfl ? 1 : 0) + (authPools.cfb ? 1 : 0))),
       needsAuth: sync && !session, ready: !sync || (!!session && !loading), loading: sync && !!session && loading,
       authTitle: authMode === 'login' ? 'Sign in' : 'Join the league', authHint: authMode === 'login' ? 'Your email and PIN. Same ones every week.' : 'The name is what shows on the board. Email is how you sign in. PIN is 4+ digits.',
       authName, authEmail, authPin, authError, isRegister: authMode === 'register',
@@ -572,7 +660,8 @@ class Component extends DCLogic {
       toggleAuthMode: () => this.setState({ authMode: authMode === 'login' ? 'register' : 'login', authError: '' }),
       authSubmit: e => { e.preventDefault(); const name = authName.trim(), email = authEmail.trim().toLowerCase();
         if (!email || !authPin || (authMode === 'register' && !name)) { this.setState({ authError: authMode === 'register' ? 'Need a name, email and PIN.' : 'Need both email and PIN.' }); return; }
-        this.setState({ busy: 'auth' }); this.api({ action: authMode, name, email, pin: authPin }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
+        this.setState({ busy: 'auth' }); const pools = ['nfl', 'cfb'].filter(k => authPools[k]); if (authMode === 'register' && !pools.length) { this.setState({ authError: 'Pick at least one pool.' }); return; }
+        this.api({ action: authMode, name, email, pin: authPin, pools }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
       signOut: () => this.setSession(null),
       lockAdmin: () => this.setState({ adminOk: false }),
       adminGames, weekStatus: weekFinal ? 'All scores in — this week counts in standings.' : week.games.length ? 'Leave scores blank until the game is over. The week counts once every score is in.' : 'No games yet. Add one below.',
@@ -581,7 +670,7 @@ class Component extends DCLogic {
       removeWeek: () => { if (weeks.length > 1 && confirm(`Delete Week ${week.n} and all its games?`)) { this.mutate(d => { d[pool].weeks.splice(wi, 1); d[pool].weeks.forEach((w, i) => w.n = i + 1); }); this.setState({ week: Math.max(0, wi - 1), pastWeek: null }); } },
       noRemoveWeek: weeks.length <= 1,
       playersText: players.join('\n'), setPlayers: e => { const list = e.target.value.split('\n').map(x => x.trim()).filter(Boolean); if (list.length) this.persist({ players: list, me: list.includes(me) ? me : list[0] }); },
-      playerCount: players.length, playersHint: sync ? 'Players register themselves on the sign-in screen. Remove anyone who shouldn\'t be here.' : 'One name per line. Both pools share this list.',
+      playerCount: players.length, playersHint: sync ? 'Tap a pool to flip Paid / Unpaid. Players register themselves on the sign-in screen.' : 'Tap a pool to flip Paid / Unpaid. Demo: edit names one per line below.',
       resetAll: () => { if (confirm('Reset games, scores and players to the sample data? Picks are kept.')) this.persist({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, week: null, pastWeek: null }); },
       standHint: finals.length ? `Through Week ${finals[finals.length - 1].n} · ${players.length} players` : 'No results yet',
       lastFinalWeek: finals.length ? finals[finals.length - 1].n : '—',
