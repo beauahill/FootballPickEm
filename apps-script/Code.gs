@@ -3,7 +3,7 @@ const TZ = 'America/Denver';   // kickoff times are shown in this time zone
 const SEASON = 2026;
 const HEADERS = {
   Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid'],
-  Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread'],
+  Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread', 'kick'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
   Settings: ['key', 'value']
@@ -52,12 +52,12 @@ function pool_(pool) {
   const gs = rows_('Games').filter(g => g.pool === pool);
   const n = Math.max(Number(setting_('weeks_' + pool)) || 1, ...gs.map(g => Number(g.week)));
   const weeks = [];
-  for (let i = 1; i <= n; i++) weeks.push({ n: i, games: gs.filter(g => Number(g.week) === i).map(g => ({ id: String(g.id), away: String(g.away), home: String(g.home), when: String(g.when), as: g.as === '' ? null : Number(g.as), hs: g.hs === '' ? null : Number(g.hs), espnId: String(g.espnId || ''), spread: g.spread === '' || g.spread == null ? null : Number(g.spread) })) });
+  for (let i = 1; i <= n; i++) weeks.push({ n: i, games: gs.filter(g => Number(g.week) === i).map(g => ({ id: String(g.id), away: String(g.away), home: String(g.home), when: String(g.when), as: g.as === '' ? null : Number(g.as), hs: g.hs === '' ? null : Number(g.hs), espnId: String(g.espnId || ''), spread: g.spread === '' || g.spread == null ? null : Number(g.spread), kick: g.kick ? new Date(g.kick).toISOString() : null })) });
   return { label: pool === 'nfl' ? 'NFL' : 'College', weeks };
 }
 function savePool_(pool, weeks) {
   const others = rows_('Games').filter(g => g.pool !== pool), mine = [];
-  weeks.forEach(w => w.games.forEach(g => mine.push({ pool, week: w.n, id: g.id, away: g.away, home: g.home, when: g.when, as: g.as == null ? '' : g.as, hs: g.hs == null ? '' : g.hs, espnId: g.espnId || '', spread: g.spread == null ? '' : g.spread })));
+  weeks.forEach(w => w.games.forEach(g => mine.push({ pool, week: w.n, id: g.id, away: g.away, home: g.home, when: g.when, as: g.as == null ? '' : g.as, hs: g.hs == null ? '' : g.hs, espnId: g.espnId || '', spread: g.spread == null ? '' : g.spread, kick: g.kick || '' })));
   writeAll_('Games', others.concat(mine));
   setSetting_('weeks_' + pool, String(weeks.length));
 }
@@ -86,11 +86,12 @@ function handle_(b) {
     case 'savePicks': {
       const p = auth(), me = String(p.name), lock = LockService.getScriptLock(); lock.waitLock(10000);
       try {
-        const games = rows_('Games');
+        const games = rows_('Games'), now = new Date();
         const all = rows_('Picks').filter(x => !(String(x.player) === me && (b.picks || {})[x.gameId] !== undefined));
         Object.entries(b.picks || {}).forEach(([gid, pick]) => {
           const g = games.find(x => String(x.id) === gid);
           if (g && (g.as !== '' || g.hs !== '')) return;   // scores in — game is locked
+          if (g && g.kick && new Date(g.kick) <= now) return;   // game has kicked off
           all.push({ player: me, gameId: gid, pick, updated: new Date() });
         });
         writeAll_('Picks', all);
@@ -180,7 +181,7 @@ function espn_(pool, week) {
     const name = t => pool === 'nfl' ? t.team.name : t.team.location, rk = t => !!(t.curatedRank && t.curatedRank.current <= 25);
     const final = !!(c.status && c.status.type && c.status.type.completed);
     const spread = homeLine_(c.odds && c.odds[0], home, away);
-    return { id: 'e' + e.id, espnId: String(e.id), away: name(away), home: name(home), when: Utilities.formatDate(new Date(e.date), TZ, 'EEE h:mm a'), spread, as: final ? Number(away.score) : null, hs: final ? Number(home.score) : null, final, ranked: rk(home) || rk(away) };
+    return { id: 'e' + e.id, espnId: String(e.id), away: name(away), home: name(home), when: Utilities.formatDate(new Date(e.date), TZ, 'EEE h:mm a'), kick: new Date(e.date).toISOString(), spread, as: final ? Number(away.score) : null, hs: final ? Number(home.score) : null, final, ranked: rk(home) || rk(away) };
   });
 }
 // ESPN blocks Google's servers directly (HTTP 403), so try a couple of public relays. The page's Admin buttons
