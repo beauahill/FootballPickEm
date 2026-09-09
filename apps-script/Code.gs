@@ -200,6 +200,8 @@ function admin_(b) {
     }
     case 'pullScores': return { ok: true, updated: pull_(b.pool, b.week), ...state_() };
     case 'sendReminders': return { ok: true, sent: remind(), ...state_() };
+    case 'sendResults': return { ok: true, sent: sendResults_(b.pool, Number(b.week)), ...state_() };
+    case 'notify': return { ok: true, sent: notify_(String(b.to || 'all'), String(b.subject || ''), String(b.message || '')), ...state_() };
   }
   throw new Error('Unknown admin op');
 }
@@ -220,6 +222,57 @@ function autoPull() {
     try { autoImport_(pool); } catch (e) { console.warn('autoImport ' + pool + ': ' + e); }
     pool_(pool).weeks.forEach(w => { if (w.games.some(g => g.as == null || g.hs == null)) pull_(pool, w.n); });
   });
+  try { weeklyResults_(); } catch (e) { console.warn('weeklyResults: ' + e); }
+}
+// After the last game of a week is scored, email everyone in that pool the results once.
+function weeklyResults_() {
+  ['nfl', 'cfb'].forEach(pool => pool_(pool).weeks.forEach(w => {
+    if (!w.games.length || !w.games.every(g => g.as != null && g.hs != null)) return;
+    if (setting_('resultsSent_' + pool + '_' + w.n)) return;
+    sendResults_(pool, w.n);
+  }));
+}
+function sendResults_(pool, weekN) {
+  const P = pool_(pool), w = P.weeks[weekN - 1]; if (!w || !w.games.length) throw new Error('No games in that week');
+  if (!w.games.every(g => g.as != null && g.hs != null)) throw new Error('Week ' + weekN + ' still has unscored games');
+  const players = rows_('Players').filter(p => split_(p.pools).includes(pool));
+  const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = String(p.pick));
+  const winnerOf = g => Number(g.hs) > Number(g.as) ? g.home : g.away;
+  const rec = (name, wk) => { let x = 0, y = 0; wk.games.forEach(g => { if (g.as == null || g.hs == null) return; picks[name + '|' + g.id] === winnerOf(g) ? x++ : y++; }); return [x, y]; };
+  const finals = P.weeks.filter(x => x.n <= weekN && x.games.length && x.games.every(g => g.as != null && g.hs != null));
+  const rows = players.map(p => { const n = String(p.name), wk = rec(n, w); let sw = 0, sl = 0; finals.forEach(f => { const r = rec(n, f); sw += r[0]; sl += r[1]; }); return { n, ww: wk[0], wl: wk[1], sw, sl }; }).sort((a, b) => b.sw - a.sw || b.ww - a.ww || a.n.localeCompare(b.n));
+  if (!rows.length) return 0;
+  const by = {}; rows.forEach(r => by[r.n] = r);
+  const weekRows = rows.slice().sort((a, b) => b.ww - a.ww || a.n.localeCompare(b.n)), best = weekRows[0].ww, wins = weekRows.filter(r => r.ww === best), worst = weekRows[weekRows.length - 1];
+  const names = rows.map(r => r.n).sort((a, b) => a.localeCompare(b));
+  const rivalOf = (p, n) => { const arr = names.slice(); if (arr.length % 2) arr.push(null); const m = arr.length; if (m < 2) return null; const r = (n - 1) % (m - 1), rest = arr.slice(1), rot = rest.slice(rest.length - r).concat(rest.slice(0, rest.length - r)), line = [arr[0]].concat(rot), i = line.indexOf(p); return i < 0 ? null : line[m - 1 - i]; };
+  const label = pool === 'nfl' ? 'NFL' : 'College', name = setting_('leagueName') || LEAGUE_NAME, url = setting_('leagueUrl') || LEAGUE_URL;
+  const L = [label + ' Week ' + weekN + ' is in the books.', ''];
+  L.push('WEEK WINNER' + (wins.length > 1 ? 'S (tie)' : '') + ': ' + wins.map(r => r.n + ' (' + r.ww + '-' + r.wl + ')').join(', '));
+  L.push('BASEMENT: ' + worst.n + ' (' + worst.ww + '-' + worst.wl + ')');
+  L.push('', 'THIS WEEK'); weekRows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.ww + '-' + r.wl));
+  L.push('', 'SEASON'); rows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.sw + '-' + r.sl + (i ? '  (' + (rows[0].sw - r.sw) + ' back)' : '')));
+  const seen = new Set(), riv = [];
+  names.forEach(n => { const r = rivalOf(n, weekN); if (!r || seen.has(n)) return; seen.add(n); seen.add(r); riv.push('  ' + n + ' ' + by[n].ww + ' – ' + by[r].ww + ' ' + r + (by[n].ww === by[r].ww ? '  (push)' : '')); });
+  if (riv.length) L.push('', 'RIVALRIES', ...riv);
+  const ch = rows_('Challenges').filter(c => String(c.pool) === pool && Number(c.week) === weekN && String(c.status) === 'accepted' && by[String(c.from)] && by[String(c.to)]);
+  if (ch.length) { L.push('', 'CALLOUTS'); ch.forEach(c => { const a = by[String(c.from)], b = by[String(c.to)]; L.push('  ' + c.from + ' ' + a.ww + ' – ' + b.ww + ' ' + c.to + ': ' + (a.ww > b.ww ? c.from + ' wins $' + c.amount : a.ww < b.ww ? c.to + ' wins $' + c.amount : 'push')); }); }
+  L.push('', 'Full results and next week\'s games: ' + url, '', '— ' + name);
+  const emails = players.map(p => String(p.email || '').trim()).filter(Boolean);
+  if (emails.length) MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), bcc: emails.join(','), subject: name + ': ' + label + ' Week ' + weekN + ' results — ' + wins.map(r => r.n).join(' & ') + ' take' + (wins.length > 1 ? '' : 's') + ' it', body: L.join('\n') });
+  setSetting_('resultsSent_' + pool + '_' + weekN, new Date().toISOString());
+  return emails.length;
+}
+// Admin notice: to = 'all' or a player name.
+function notify_(to, subject, message) {
+  const name = setting_('leagueName') || LEAGUE_NAME, players = rows_('Players');
+  const list = (to === 'all' ? players : players.filter(p => String(p.name) === to)).map(p => String(p.email || '').trim()).filter(Boolean);
+  if (!list.length) throw new Error('No email on file for that player');
+  if (!String(subject || '').trim() || !String(message || '').trim()) throw new Error('Need a subject and a message');
+  const body = String(message).trim() + '\n\n— ' + name;
+  if (to === 'all') MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), bcc: list.join(','), subject: name + ': ' + subject.trim(), body });
+  else MailApp.sendEmail({ to: list[0], subject: name + ': ' + subject.trim(), body });
+  return list.length;
 }
 function autoImport_(pool) {
   const cur = currentWeek_(pool); if (!cur) return;

@@ -32,6 +32,11 @@ The hourly `remind` trigger emails a player once per game they haven't picked wh
 ## If it gets slow
 Apps Script sometimes answers with a "busy" page instead of data; the page now retries twice automatically. Google allows ~30 simultaneous requests and 90 minutes of script time a day for a free account — fine for a league of 50 if the hourly triggers aren't doubled up. Check Apps Script → Triggers and make sure `autoPull` and `remind` appear once each (run `installTrigger` again to reset them).
 
+## Emails
+- **Weekly results** go out automatically to everyone in the pool once the week's last game is scored (the hourly `autoPull` trigger checks). One email per week, tracked in Settings as `resultsSent_<pool>_<week>`; delete that row to resend, or use Admin → **Email Week N results now**.
+- **Notices**: Admin → *Send a notice* emails everyone or one player.
+- All email goes from the Google account that owns the sheet (Gmail ~100/day; a bulk BCC counts once per recipient).
+
 ## Side action
 Three side games run off the same picks, no extra entry:
 - **Weekly rival** — every player is paired with someone new each week (round-robin over the roster, so keep the roster stable after Week 1 or pairings reshuffle). Most correct picks wins; the season W-L-T shows in the Standings "Rival" column.

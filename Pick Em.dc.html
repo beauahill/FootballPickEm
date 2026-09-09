@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="rtmtuahopj" style="display:none"></div>
+<div data-build="emmtubv59l" style="display:none"></div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -237,26 +237,43 @@
           <div style="font-size:14px;color:var(--color-neutral-700)">{{ loserLine }}</div>
         </div>
       </div>
-      <div style="overflow-x:auto">
-        <table class="table" style="font-size:16px">
-          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Back</th><th style="text-align:right">Rival</th><th style="text-align:right">Side $</th><th style="text-align:right">Won</th><th style="text-align:right">If it ends today</th></tr></thead>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;max-width:360px">
+        <button class="btn {{ standRecCls }}" onClick="{{ standRec }}" style="min-height:44px;font-size:16px">Record</button>
+        <button class="btn {{ standMoneyCls }}" onClick="{{ standMoney }}" style="min-height:44px;font-size:16px">Money &amp; side action</button>
+      </div>
+      <sc-if value="{{ isStandRec }}" hint-placeholder-val="{{ true }}">
+        <table class="table" style="font-size:16px;width:100%">
+          <thead><tr><th style="width:40px">#</th><th>Player</th><th style="text-align:right;white-space:nowrap">Wk {{ lastFinalWeek }}</th><th style="text-align:right;white-space:nowrap">Season</th><th style="text-align:right;white-space:nowrap">Back</th></tr></thead>
           <tbody>
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
               <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
-                <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 7px">{{ r.rank }}</td>
-                <td style="padding:10px 7px;font-size:17px">{{ r.name }} <span class="tag tag-accent" style="margin-left:6px;display:{{ r.tagDisplay }}">{{ r.tag }}</span></td>
-                <td style="text-align:right;padding:10px 7px">{{ r.week }}</td>
-                <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
-                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.back }}</td>
-                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.rival }}</td>
-                <td style="text-align:right;padding:10px 7px;color:{{ r.sideColor }}">{{ r.side }}</td>
-                <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-700)">{{ r.won }}</td>
-                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.proj }}</td>
+                <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 6px">{{ r.rank }}</td>
+                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere">{{ r.name }} <span class="tag tag-accent" style="margin-left:6px;display:{{ r.tagDisplay }}">{{ r.tag }}</span></td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap">{{ r.week }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:var(--color-neutral-600)">{{ r.back }}</td>
               </tr>
             </sc-for>
           </tbody>
         </table>
-      </div>
+      </sc-if>
+      <sc-if value="{{ isStandMoney }}" hint-placeholder-val="{{ false }}">
+        <table class="table" style="font-size:16px;width:100%">
+          <thead><tr><th style="width:40px">#</th><th>Player</th><th style="text-align:right;white-space:nowrap">Won</th><th style="text-align:right;white-space:nowrap">Rival</th><th style="text-align:right;white-space:nowrap">Side $</th><th style="text-align:right;white-space:nowrap">Proj</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+              <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
+                <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 6px">{{ r.rank }}</td>
+                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere">{{ r.name }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-700)">{{ r.won }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:var(--color-neutral-600)">{{ r.rival }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:{{ r.sideColor }}">{{ r.side }}</td>
+                <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:var(--color-neutral-600)">{{ r.proj }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </sc-if>
     </section>
   </sc-if>
 
@@ -340,7 +357,7 @@
         </div>
         <div style="overflow-x:auto">
           <table class="table" style="font-size:16px">
-            <thead><tr><th>Game</th><th>Final</th><th>Winner</th><th>Your pick</th><th style="text-align:right">Pool got it</th></tr></thead>
+            <thead><tr><th>Game</th><th>Final</th><th>Winner</th><th>Your pick</th><th style="text-align:right;white-space:nowrap">Pool got it</th></tr></thead>
             <tbody>
               <sc-for list="{{ pastGames }}" as="g" hint-placeholder-count="6">
                 <tr>
@@ -390,7 +407,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
             <button class="btn btn-secondary" onClick="{{ importWeek }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Import Week {{ weekNum }} schedule from ESPN</button>
             <button class="btn btn-secondary" onClick="{{ pullScores }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Pull final scores now</button>
-            <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary" onClick="{{ sendReminders }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Email pick reminders now</button></sc-if>
+            <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary" onClick="{{ sendReminders }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Email pick reminders now</button><button class="btn btn-secondary" onClick="{{ sendResults }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">Email Week {{ weekNum }} results now</button></sc-if>
         </div>
         <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ false }}">
           <p style="margin:0 0 16px;font-size:14px;color:var(--color-neutral-700)">Demo mode — data stays on this device. Connect the Google Sheet (see SETUP.md) to share the league with everyone.</p>
@@ -420,6 +437,22 @@
               {{ adminSaveLabel }}
             </button>
           </div>
+        </sc-if>
+        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
+        <form onSubmit="{{ sendNotice }}" class="blueprint" style="margin-top:32px;padding:16px;display:grid;gap:12px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
+            <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Send a notice</h3>
+            <span style="font-size:14px;color:var(--color-neutral-700)">Emails from your Google account. Results go out automatically after each week's last game.</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">To</span>
+              <select class="input" value="{{ ntTo }}" onChange="{{ setNtTo }}" style="min-height:44px;font-size:17px"><option value="all">Everyone ({{ playerCount }})</option><sc-for list="{{ allPlayerNames }}" as="p" hint-placeholder-count="3"><option value="{{ p }}">{{ p }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Subject</span><input class="input" value="{{ ntSubject }}" onChange="{{ setNtSubject }}" placeholder="e.g. Pay up before Sunday" style="min-height:44px;font-size:17px"></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Message</span><textarea class="input" rows="4" value="{{ ntBody }}" onChange="{{ setNtBody }}" placeholder="Keep it short. The league name is signed for you." style="font-size:16px;line-height:1.5;min-height:110px"></textarea></label>
+          <div style="display:flex;justify-content:flex-end"><button type="submit" class="btn btn-primary" disabled="{{ ntDisabled }}" style="min-height:48px;font-size:18px;padding:0 24px">{{ ntLabel }}</button></div>
+        </form>
         </sc-if>
         <div class="blueprint" style="margin-top:32px;padding:16px;display:grid;gap:12px">
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -516,7 +549,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.v1', BUILD = 'rtmtuahopj', NEWS = '2026-09-09';
+const KEY = 'pickem.v1', BUILD = 'emmtubv59l', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -538,7 +571,7 @@ class Component extends DCLogic {
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
     this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
-      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
+      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
   componentDidMount() { if (this.sync) this.load(); this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 60000); }
@@ -784,6 +817,8 @@ class Component extends DCLogic {
       goPicks: () => this.setState({ tab: 'picks' }), goStand: () => this.setState({ tab: 'stand' }), goPast: () => this.setState({ tab: 'past' }),
       isPicks: tab === 'picks', isStand: tab === 'stand', isPast: tab === 'past',
       pickStatus, statusHint,
+      isStandRec: (this.state.standView || 'rec') === 'rec', isStandMoney: this.state.standView === 'money', standRecCls: cls((this.state.standView || 'rec') === 'rec'), standMoneyCls: cls(this.state.standView === 'money'),
+      standRec: () => this.setState({ standView: 'rec' }), standMoney: () => this.setState({ standView: 'money' }),
       showNews: !this.state.newsSeen, dismissNews: () => { this.setState({ newsSeen: true }); try { localStorage.setItem('pickem.news', NEWS); } catch (e) {} },
       rivalTitle, rivalLine, callouts, hasCallouts: callouts.length > 0, calloutHint, canChallenge: calloutsOpen && opponents.length > 0, opponents, chTo, chAmt,
       setChTo: e => this.setState({ chTo: e.target.value }), setChAmt: e => this.setState({ chAmt: e.target.value }),
@@ -815,6 +850,12 @@ class Component extends DCLogic {
           const add = ev.filter(g => !have.has(g.espnId) && (pool !== 'cfb' || g.ranked)).map(({ ranked, final, ...g }) => g);
           this.mutate(d => { d[pool].weeks[wi].games.push(...add); }, () => this.finishAdmin(pool, `Added ${add.length} game${add.length === 1 ? '' : 's'} from ESPN`));
         } catch (e) { this.setState({ busy: '' }); this.showToast('Couldn\'t reach ESPN: ' + e.message); } },
+      sendResults: () => { if (!weekFinal) { this.showToast('Week ' + week.n + ' still has unscored games.'); return; } if (confirm('Email Week ' + week.n + ' results to everyone in the pool?')) this.adminOp('sendResults', { pool, week: week.n }, j => 'Results emailed to ' + j.sent + ' player' + (j.sent === 1 ? '' : 's')); },
+      allPlayerNames: allPlayers, ntTo: this.state.ntTo, ntSubject: this.state.ntSubject, ntBody: this.state.ntBody,
+      setNtTo: e => this.setState({ ntTo: e.target.value }), setNtSubject: e => this.setState({ ntSubject: e.target.value }), setNtBody: e => this.setState({ ntBody: e.target.value }),
+      ntDisabled: !!busy || !this.state.ntSubject.trim() || !this.state.ntBody.trim(), ntLabel: busy === 'notify' ? 'Sending…' : (this.state.ntTo === 'all' ? 'Send to everyone' : 'Send to ' + this.state.ntTo),
+      sendNotice: e => { e.preventDefault(); const to = this.state.ntTo; if (to === 'all' && !confirm('Email every player in the league?')) return;
+        this.setState({ busy: 'notify' }); this.api({ action: 'admin', op: 'notify', adminPin: this.state.adminPin, to, subject: this.state.ntSubject, message: this.state.ntBody }).then(j => { this.applyState(j, { busy: '', ntSubject: '', ntBody: '' }); this.showToast('Sent to ' + j.sent + ' player' + (j.sent === 1 ? '' : 's')); }).catch(err => { this.setState({ busy: '' }); this.showToast('That didn\'t work: ' + err.message); }); },
       sendReminders: () => this.adminOp('sendReminders', {}, j => j.sent ? `Emailed ${j.sent} player${j.sent === 1 ? '' : 's'}` : 'Nobody is missing picks for the next 24 hours'),
       pullScores: async () => { this.setState({ busy: 'pullScores' }); try {
           const ev = await this.espn(pool, week.n); let n = 0, sp = 0;
