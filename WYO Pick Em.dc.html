@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="vmts8buqo" style="display:none"></div>
+<div data-build="wyomtt6lnta" style="display:none"></div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -57,12 +57,7 @@
       <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">PIN</span><input class="input" type="password" inputMode="numeric" value="{{ authPin }}" onChange="{{ setAuthPin }}" placeholder="4+ digits" autoComplete="current-password" style="min-height:52px;font-size:24px;letter-spacing:.3em"></label>
       <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:6px">
-          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Which pools are you in? ({{ feeLabel }} each)</span>
-          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-            <button type="button" class="btn {{ nflJoinCls }}" onClick="{{ toggleNfl }}" style="min-height:52px;font-size:18px">NFL</button>
-            <button type="button" class="btn {{ cfbJoinCls }}" onClick="{{ toggleCfb }}" style="min-height:52px;font-size:18px">College</button>
-          </div>
-          <span style="font-size:14px;color:var(--color-neutral-700)">You owe the commissioner {{ joinTotal }}.</span>
+          <span style="font-size:14px;color:var(--color-neutral-700)">Buy-in is {{ feeLabel }}. You owe the commissioner {{ joinTotal }}.</span>
         </div>
         <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">League access code</span><input class="input" value="{{ authCode }}" onChange="{{ setAuthCode }}" placeholder="From the commissioner" autoComplete="off" style="min-height:52px;font-size:20px"></label>
       </sc-if>
@@ -80,10 +75,6 @@
 
   <sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
 
-  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px">
-    <button class="btn {{ nflCls }}" onClick="{{ pickNfl }}" style="min-height:56px;font-size:22px">NFL Pool</button>
-    <button class="btn {{ cfbCls }}" onClick="{{ pickCfb }}" style="min-height:56px;font-size:22px">College Pool</button>
-  </div>
 
   <nav style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:28px">
     <button class="btn {{ tabPicksCls }}" onClick="{{ goPicks }}" style="min-height:48px;font-size:17px">Make Picks</button>
@@ -221,8 +212,8 @@
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
         <div style="display:grid;gap:8px">
           <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Pay the commissioner</div>
-          <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1.1">{{ feeLabel }} per pool</div>
-          <div style="font-size:15px;color:var(--color-neutral-700)">Venmo <strong>@{{ venmoHandle }}</strong> — put your name and the pool in the note so you turn green.</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1.1">{{ feeLabel }} buy-in</div>
+          <div style="font-size:15px;color:var(--color-neutral-700)">Venmo <strong>@{{ venmoHandle }}</strong> — put your name in the note so you turn green.</div>
           <a class="btn btn-primary blueprint" href="{{ venmoUrl }}" target="_blank" rel="noopener" style="min-height:52px;font-size:20px;border-color:var(--color-accent);justify-self:start;padding:0 24px">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             Open Venmo
@@ -376,10 +367,9 @@
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <h3 style="font-family:var(--font-heading);font-weight:600;font-size:24px;margin:0">Money &amp; payouts</h3>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Entry fee per pool ($)</span><input class="input" type="number" min="0" value="{{ sEntry }}" onChange="{{ setEntry }}" style="min-height:44px;font-size:18px"></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Buy-in ($)</span><input class="input" type="number" min="0" value="{{ sEntry }}" onChange="{{ setEntry }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">% of pot to weekly winners</span><input class="input" type="number" min="0" max="100" value="{{ sWeekly }}" onChange="{{ setWeekly }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">NFL weeks in season</span><input class="input" type="number" min="1" value="{{ sWeeksNfl }}" onChange="{{ setWeeksNfl }}" style="min-height:44px;font-size:18px"></label>
-            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">College weeks in season</span><input class="input" type="number" min="1" value="{{ sWeeksCfb }}" onChange="{{ setWeeksCfb }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 1st %</span><input class="input" type="number" min="0" max="100" value="{{ sP1 }}" onChange="{{ setP1 }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 2nd %</span><input class="input" type="number" min="0" max="100" value="{{ sP2 }}" onChange="{{ setP2 }}" style="min-height:44px;font-size:18px"></label>
             <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Season 3rd %</span><input class="input" type="number" min="0" max="100" value="{{ sP3 }}" onChange="{{ setP3 }}" style="min-height:44px;font-size:18px"></label>
@@ -400,13 +390,12 @@
           <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ true }}">
             <textarea class="input" rows="10" defaultValue="{{ playersText }}" onBlur="{{ setPlayers }}" style="font-size:16px;line-height:1.6;min-height:200px"></textarea>
           </sc-if>
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 40px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);padding:0 4px"><span>Player</span><span>NFL</span><span>College</span><span></span></div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 40px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);padding:0 4px"><span>Player</span><span>Paid?</span><span></span></div>
           <div style="display:grid;gap:6px">
             <sc-for list="{{ playerList }}" as="p" hint-placeholder-count="6">
-              <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 40px;gap:8px;align-items:center;border:1px solid var(--color-divider);padding:6px 6px 6px 12px;font-size:16px">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 40px;gap:8px;align-items:center;border:1px solid var(--color-divider);padding:6px 6px 6px 12px;font-size:16px">
                 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
                 <button class="btn {{ p.nfl.cls }}" onClick="{{ p.nfl.toggle }}" style="opacity:{{ p.nfl.op }};min-height:40px;font-size:14px;padding:0 8px">{{ p.nfl.label }}</button>
-                <button class="btn {{ p.cfb.cls }}" onClick="{{ p.cfb.toggle }}" style="opacity:{{ p.cfb.op }};min-height:40px;font-size:14px;padding:0 8px">{{ p.cfb.label }}</button>
                 <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost btn-icon" onClick="{{ p.remove }}" aria-label="Remove player" style="width:36px;height:36px;font-size:18px">×</button></sc-if>
               </div>
             </sc-for>
@@ -427,7 +416,7 @@
 </div>
 
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d2d3d"></rect><ellipse cx="50" cy="50" rx="22" ry="13" fill="none" stroke="#f2f2f3" stroke-width="3" transform="rotate(-30 50 50)"></ellipse><line x1="42" y1="55" x2="58" y2="45" stroke="#f2f2f3" stroke-width="2.5"></line></svg></template></x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;apiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://script.google.com/macros/s/AKfycbxFgdYiHACVnw3QZ8OqRcy43B6ucGpjmMpfQgqjQ_bdHV9nAsQtiME72UWPrh_LRfRA/exec&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;,&quot;label&quot;:&quot;API URL (Google Apps Script /exec)&quot;},&quot;leagueName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Anschutz Pick Em&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;},&quot;trashTalk&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;tiebreaker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rules&quot;},&quot;adminPin&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2971&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Admin&quot;,&quot;label&quot;:&quot;Admin PIN (demo mode only)&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;apiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://script.google.com/macros/s/AKfycbzwnssr1Kj5g7213JUOhgDwweKhtyhKm8LMkTeCvCeo6fcfwzLSZmzCGvhIfMhAWeFTgw/exec&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;,&quot;label&quot;:&quot;API URL (Google Apps Script /exec)&quot;},&quot;leagueName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;WYO Pick Em&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;League&quot;},&quot;trashTalk&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;tiebreaker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rules&quot;},&quot;adminPin&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2971&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Admin&quot;,&quot;label&quot;:&quot;Admin PIN (demo mode only)&quot;}}">
 const G = (id, away, home, when, as, hs) => ({ id, away, home, when, as, hs });
 const POOLS = {
   nfl: { label: 'NFL', weeks: [
@@ -467,11 +456,11 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.v1', BUILD = 'vmts8buqo';
+const KEY = 'pickem.wyo.v1', BUILD = 'wyomtt6lnta';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
-const demoRoster = names => names.map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: ['nfl', 'cfb'].filter(p => (hash(n + p) % 5) !== 0) }));
+const demoRoster = names => names.map(n => ({ name: n, pools: ['nfl'], paid: ['nfl'].filter(p => (hash(n + p) % 5) !== 0) }));
 const hash = s => { let x = 7; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
 const simPick = (p, g) => (hash(p + '|' + g.id) % 100) < 55 ? g.home : g.away;
 const scored = g => g.as != null && g.hs != null && g.as !== '' && g.hs !== '';
@@ -488,7 +477,7 @@ class Component extends DCLogic {
     const roster = store.roster && store.roster.length ? store.roster : demoRoster(players);
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
-    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
+    this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: false }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
       session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '' };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
@@ -513,12 +502,12 @@ class Component extends DCLogic {
     return j;
   }
   applyState(j, extra) {
-    if (!j.data || !j.data.nfl || !j.data.cfb) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
+    if (!j.data || !j.data.nfl) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
     const me = this.state.session ? this.state.session.name : '';
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, accessCode: this.state.settings.accessCode }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
     if (j.settings && j.settings.venmo != null) settings.venmo = String(j.settings.venmo);
-    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: [] })), settings, picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
+    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl'], paid: [] })), settings, picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
   setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
@@ -674,7 +663,7 @@ class Component extends DCLogic {
           return { away: g.away, home: g.home, score: `${g.as}-${g.hs}`, winner: win, mine: mine === win ? `${mine} ✓` : `${mine} ✗`, color: mine === win ? 'var(--color-accent-700)' : 'var(--color-neutral-500)', pool: pct + '%' }; }) };
     }
     return {
-      leagueName: this.props.leagueName ?? 'Anschutz Oil Trash Pick Em', seasonLabel: `2026 Season · ${P.label} · Straight up`,
+      leagueName: this.props.leagueName ?? 'Anschutz Oil Trash Pick Em', seasonLabel: '2026 Season · NFL · Straight up',
       players, me, setMe: e => this.persist({ me: e.target.value, dirty: false }),
       nflCls: cls(pool === 'nfl'), cfbCls: cls(pool === 'cfb'),
       pickNfl: () => this.setState({ pool: 'nfl', week: null, pastWeek: null }), pickCfb: () => this.setState({ pool: 'cfb', week: null, pastWeek: null }),
@@ -682,7 +671,7 @@ class Component extends DCLogic {
       venmoHandle: String(settings.venmo || '').replace(/^@/, ''), venmoUrl: 'https://venmo.com/u/' + String(settings.venmo || '').replace(/^@/, ''), showQr: String(settings.venmo || '').replace(/^@/, '') === 'Beau-AD-Hill',
       sVenmo: settings.venmo || '', setVenmo: e => this.setSetting('venmo', e.target.value), sCode: settings.accessCode || '', setCode: e => this.setSetting('accessCode', e.target.value),
       authCode, setAuthCode: e => this.setState({ authCode: e.target.value, authError: '' }),
-      myOwe: (() => { const p = rosterOf(me); if (!p) return ''; const owed = p.pools.filter(x => !p.paid.includes(x)); return owed.length ? `You owe ${money(fee * owed.length)} (${owed.map(x => x === 'nfl' ? 'NFL' : 'College').join(' + ')}).` : T('You\'re paid up. Rare.', 'You are paid in full.'); })(),
+      myOwe: (() => { const p = rosterOf(me); if (!p) return ''; const owed = p.pools.filter(x => !p.paid.includes(x)); return owed.length ? `You owe ${money(fee)}.` : T('You\'re paid up. Rare.', 'You are paid in full.'); })(),
       goPicks: () => this.setState({ tab: 'picks' }), goStand: () => this.setState({ tab: 'stand' }), goPast: () => this.setState({ tab: 'past' }),
       isPicks: tab === 'picks', isStand: tab === 'stand', isPast: tab === 'past',
       pickStatus, statusHint,
@@ -720,9 +709,9 @@ class Component extends DCLogic {
             if (m && m.spread != null && g.as == null && g.hs == null && g.spread !== m.spread) { g.spread = m.spread; sp++; }
             if (m && m.final && (g.as !== m.as || g.hs !== m.hs)) { g.as = m.as; g.hs = m.hs; g.espnId = m.espnId; n++; } }); }, () => this.finishAdmin(pool, n || sp ? `Updated ${n} score${n === 1 ? '' : 's'}${sp ? `, ${sp} line${sp === 1 ? '' : 's'}` : ''}` : (ev.some(x => x.spread != null) ? 'No new final scores or line changes' : 'Scores unchanged — ESPN returned no lines for this week')));
         } catch (e) { this.setState({ busy: '' }); this.showToast('Couldn\'t reach ESPN: ' + e.message); } },
-      playerList: allPlayers.map(n => { const p = rosterOf(n) || { pools: ['nfl', 'cfb'], paid: [] }; const cell = pl => { const inP = p.pools.includes(pl), paid = p.paid.includes(pl); return { label: !inP ? 'Not in' : paid ? 'Paid ✓' : 'Unpaid', cls: paid ? 'btn-primary' : 'btn-secondary', op: inP ? '1' : '.45', toggle: () => this.setPaid(n, pl, !paid) }; };
+      playerList: allPlayers.map(n => { const p = rosterOf(n) || { pools: ['nfl'], paid: [] }; const cell = pl => { const inP = p.pools.includes(pl), paid = p.paid.includes(pl); return { label: !inP ? 'Not in' : paid ? 'Paid ✓' : 'Unpaid', cls: paid ? 'btn-primary' : 'btn-secondary', op: inP ? '1' : '.45', toggle: () => this.setPaid(n, pl, !paid) }; };
         return { name: n, nfl: cell('nfl'), cfb: cell('cfb'), remove: () => { if (!sync) return; if (confirm(`Remove ${n} and all their picks?`)) this.adminOp('removePlayer', { name: n }, `${n} removed`); } }; }),
-      potLine: `${P.label} pot ${money(pot)} · ${paidNames.length} of ${players.length} paid`,
+      potLine: `Pot ${money(pot)} · ${paidNames.length} of ${players.length} paid`,
       paidList: players.slice().sort((a, b) => { const pa = paidNames.includes(a), pb = paidNames.includes(b); return pa === pb ? a.localeCompare(b) : (pa ? 1 : -1); }).map(n => { const paid = paidNames.includes(n); return { name: n, color: paid ? '#2e7d4f' : '#c0392b', weight: n === me ? '600' : '400' }; }),
       unpaidLine: players.length - paidNames.length === 0 ? T('Everybody\'s square. Miracle.', 'Everyone has paid.') : T(`${players.length - paidNames.length} still owe ${money(fee)}. Red means pay the man.`, `${players.length - paidNames.length} unpaid · ${money(fee)} each.`),
       payWeekly: money(weeklyPrize), pay1: money(seasonPot * pct[0] / 100), pay2: money(seasonPot * pct[1] / 100), pay3: money(seasonPot * pct[2] / 100),
@@ -742,7 +731,7 @@ class Component extends DCLogic {
       toggleAuthMode: () => this.setState({ authMode: authMode === 'login' ? 'register' : 'login', authError: '' }),
       authSubmit: e => { e.preventDefault(); const name = authName.trim(), email = authEmail.trim().toLowerCase();
         if (!email || !authPin || (authMode === 'register' && !name)) { this.setState({ authError: authMode === 'register' ? 'Need a name, email and PIN.' : 'Need both email and PIN.' }); return; }
-        this.setState({ busy: 'auth' }); const pools = ['nfl', 'cfb'].filter(k => authPools[k]); if (authMode === 'register' && !pools.length) { this.setState({ authError: 'Pick at least one pool.' }); return; }
+        this.setState({ busy: 'auth' }); const pools = ['nfl'];
         this.api({ action: authMode, name, email, pin: authPin, pools, code: authCode.trim() }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
       signOut: () => this.setSession(null),
       lockAdmin: () => this.setState({ adminOk: false }),

@@ -6,8 +6,12 @@ const HEADERS = {
   Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread', 'kick'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
-  Settings: ['key', 'value']
+  Settings: ['key', 'value'],
+  Reminders: ['player', 'gameId', 'sent']
 };
+// Reminder emails: a player with no pick on a game kicking off within REMIND_HOURS gets one email (per game) with a link.
+// Set leagueName / leagueUrl in the Settings tab; these are the fallbacks.
+const REMIND_HOURS = 24, LEAGUE_NAME = 'Pick Em', LEAGUE_URL = 'https://beauahill.github.io/FootballPickEm/';
 
 // Run once from the editor: creates the tabs and a default admin PIN (change it in the Settings tab).
 function setup() {
@@ -20,7 +24,7 @@ function setup() {
 // reserved for weekly winners (split evenly across the season's weeks), weeks per pool, and the season split.
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 // Text settings: accessCode gates registration (blank = open); venmo is the commissioner's handle shown on the Payments tab.
-const TEXT_SETTINGS = { accessCode: '', venmo: '' };
+const TEXT_SETTINGS = { accessCode: '', venmo: '', leagueName: '', leagueUrl: '' };
 const split_ = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 // Run once after pasting new code: makes Google ask for permission to reach ESPN, and prints how many games it sees.
 function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachable — ' + n + ' NFL week 1 games'); return n; }
@@ -28,6 +32,29 @@ function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachab
 function installTrigger() {
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('autoPull').timeBased().everyHours(1).create();
+  ScriptApp.newTrigger('remind').timeBased().everyHours(1).create();
+}
+// Hourly: email anyone missing picks on games that kick off within REMIND_HOURS. Returns how many emails went out.
+function remind() {
+  const players = rows_('Players'), have = new Set(rows_('Picks').map(p => p.player + '|' + p.gameId));
+  const sent = rows_('Reminders'), done = new Set(sent.map(r => r.player + '|' + r.gameId));
+  const now = new Date(), horizon = new Date(now.getTime() + REMIND_HOURS * 3600e3);
+  const games = rows_('Games').filter(g => g.kick && g.as === '' && new Date(g.kick) > now && new Date(g.kick) <= horizon).sort((a, b) => new Date(a.kick) - new Date(b.kick));
+  const name = setting_('leagueName') || LEAGUE_NAME, url = setting_('leagueUrl') || LEAGUE_URL;
+  let n = 0;
+  players.forEach(p => {
+    const email = String(p.email || '').trim(); if (!email) return;
+    const pools = split_(p.pools), miss = games.filter(g => pools.includes(g.pool) && !have.has(p.name + '|' + String(g.id)));
+    if (!miss.length || miss.every(g => done.has(p.name + '|' + String(g.id)))) return;
+    const lines = miss.map(g => '  • ' + g.away + ' at ' + g.home + ' — ' + Utilities.formatDate(new Date(g.kick), TZ, 'EEE h:mm a') + (g.pool === 'cfb' ? ' (College)' : ''));
+    const body = 'Hey ' + p.name + ',\n\nYou have ' + miss.length + ' game' + (miss.length === 1 ? '' : 's') + ' kicking off in the next ' + REMIND_HOURS + ' hours with no pick:\n\n' + lines.join('\n') + '\n\nNo pick = automatic loss. Get in here: ' + url + '\n\n— ' + name;
+    try {
+      MailApp.sendEmail({ to: email, subject: name + ': ' + miss.length + ' pick' + (miss.length === 1 ? '' : 's') + ' missing before kickoff', body });
+      miss.forEach(g => sent.push({ player: p.name, gameId: String(g.id), sent: new Date() })); n++;
+    } catch (e) { console.warn('remind ' + email + ': ' + e); }
+  });
+  if (n) writeAll_('Reminders', sent.filter(r => games.some(g => String(g.id) === String(r.gameId)) || new Date(r.sent) > new Date(now.getTime() - 14 * 86400e3)));
+  return n;
 }
 
 function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetByName(n); if (!s) { s = ss.insertSheet(n); s.appendRow(HEADERS[n]); s.setFrozenRows(1); } return s; }
@@ -136,6 +163,7 @@ function admin_(b) {
       return { ok: true, added, ...state_() };
     }
     case 'pullScores': return { ok: true, updated: pull_(b.pool, b.week), ...state_() };
+    case 'sendReminders': return { ok: true, sent: remind(), ...state_() };
   }
   throw new Error('Unknown admin op');
 }

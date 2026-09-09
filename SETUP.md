@@ -7,7 +7,7 @@ The page runs in two modes. With no sheet connected it's a demo on your own devi
 2. Menu **Extensions → Apps Script**. Delete the sample code, paste in the contents of `apps-script/Code.gs`, save.
 3. In the function dropdown pick **setup** → Run. Approve the permissions. (Tabs appear in the sheet: Players, Games, Picks, Tiebreaks, Settings.)
 4. Pick **testEspn** → Run. Approve the permission to connect to an external service (ESPN). The log should say how many games it found.
-5. Pick **installTrigger** → Run. Every hour this imports the current week's schedule (if you haven't already) and pulls final scores from ESPN.
+5. Pick **installTrigger** → Run. Every hour this imports the current week's schedule (if you haven't already), pulls final scores from ESPN, and emails anyone missing picks on a game kicking off within 24 hours (one email per game, sent from your Google account).
 6. Open the **Settings** tab in the sheet and change `adminPin` from 1234 to your own.
 7. Back in Apps Script: **Deploy → New deployment → type: Web app**. Execute as **Me**; who has access **Anyone**. Deploy, then copy the Web app URL (ends in `/exec`).
 
@@ -25,6 +25,9 @@ Players choose their pools when they register (entry fee per pool, default $100)
 
 ## Access code
 Admin → Money & payouts → **League access code**. When set, nobody can register without it (blank = open). Text it to the group with the link.
+
+## Pick reminders
+The hourly `remind` trigger emails a player once per game they haven't picked when kickoff is under 24 hours away. Set `leagueName` and `leagueUrl` rows in the Settings tab so the email names your league and links to the right page (WYO: add `wyo/` to the URL). Admin → **Email pick reminders now** sends immediately. Gmail allows ~100 emails/day, plenty for a league. The Standings tab also shows who still owes picks for the week.
 
 ## Players
 Everyone registers once with their name, email and a 4+ digit PIN; after that they sign in with email + PIN. The name is what shows on the board. PINs are stored plainly in the Players tab — the commissioner can look one up if someone forgets. Admin can remove a player.
