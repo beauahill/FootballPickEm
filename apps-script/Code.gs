@@ -2,7 +2,7 @@
 const TZ = 'America/Denver';   // kickoff times are shown in this time zone
 const SEASON = 2026;
 const HEADERS = {
-  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid'],
+  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid', 'note'],
   Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread', 'kick'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
@@ -58,7 +58,9 @@ function remind() {
   return n;
 }
 
-function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetByName(n); if (!s) { s = ss.insertSheet(n); s.appendRow(HEADERS[n]); s.setFrozenRows(1); } return s; }
+function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetByName(n); if (!s) { s = ss.insertSheet(n); s.appendRow(HEADERS[n]); s.setFrozenRows(1); }
+  else if (HEADERS[n] && s.getLastColumn() < HEADERS[n].length) s.getRange(1, 1, 1, HEADERS[n].length).setValues([HEADERS[n]]);   // new columns added in later versions
+  return s; }
 // Each request reads every tab once (memoized for the life of the execution); writes drop the memo.
 // Before this, state_() re-read the Settings tab a dozen times per call — the main reason the sheet got sluggish.
 const _rows = {};
@@ -80,7 +82,7 @@ function doPost(e) {
 function state_() {
   const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = p.pick);
   const tb = {}; rows_('Tiebreaks').forEach(t => tb[t.player + '|' + t.key] = t.value);
-  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid) }));
+  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid), note: String(p.note || '') }));
   const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
   settings.venmo = setting_('venmo');   // accessCode is deliberately NOT sent — admins see it via the 'auth' op
   const challenges = rows_('Challenges').map(c => ({ id: String(c.id), pool: String(c.pool), week: Number(c.week), from: String(c.from), to: String(c.to), amount: Number(c.amount), status: String(c.status), created: c.created ? new Date(c.created).toISOString() : '' }));
@@ -181,6 +183,10 @@ function admin_(b) {
       let paid = split_(p.paid).filter(x => x !== b.pool); if (b.paid) paid.push(b.pool); p.paid = paid.join(',');
       if (b.paid && !split_(p.pools).includes(b.pool)) p.pools = split_(p.pools).concat(b.pool).join(',');
       writeAll_('Players', all); return { ok: true, ...state_() };
+    }
+    case 'setNote': {
+      const all = rows_('Players'); const p = all.find(x => String(x.name) === b.name); if (!p) throw new Error('No such player');
+      p.note = String(b.note || '').trim().slice(0, 200); writeAll_('Players', all); return { ok: true, ...state_() };
     }
     case 'setPools': {
       const all = rows_('Players'); const p = all.find(x => String(x.name) === b.name); if (!p) throw new Error('No such player');
