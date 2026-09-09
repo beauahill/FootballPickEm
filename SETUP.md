@@ -29,6 +29,15 @@ Admin → Money & payouts → **League access code**. When set, nobody can regis
 ## Pick reminders
 The hourly `remind` trigger emails a player once per game they haven't picked when kickoff is under 24 hours away. Set `leagueName` and `leagueUrl` rows in the Settings tab so the email names your league and links to the right page (WYO: add `wyo/` to the URL). Admin → **Email pick reminders now** sends immediately. Gmail allows ~100 emails/day, plenty for a league. The Standings tab also shows who still owes picks for the week.
 
+## If it gets slow
+Apps Script sometimes answers with a "busy" page instead of data; the page now retries twice automatically. Google allows ~30 simultaneous requests and 90 minutes of script time a day for a free account — fine for a league of 50 if the hourly triggers aren't doubled up. Check Apps Script → Triggers and make sure `autoPull` and `remind` appear once each (run `installTrigger` again to reset them).
+
+## Side action
+Three side games run off the same picks, no extra entry:
+- **Weekly rival** — every player is paired with someone new each week (round-robin over the roster, so keep the roster stable after Week 1 or pairings reshuffle). Most correct picks wins; the season W-L-T shows in the Standings "Rival" column.
+- **Callouts** — a player calls out anyone for a dollar amount; the other player accepts or declines. Most correct picks that week wins, ties push. Callouts open and close at the week's first kickoff. Stored in the `Challenges` tab (created automatically). Net winnings show in the "Side $" column. The league doesn't hold the money — players settle directly.
+- **Consensus** — once a game kicks off, each card shows what % of the league took each side. Informational only.
+
 ## Players
 Everyone registers once with their name, email and a 4+ digit PIN; after that they sign in with email + PIN. The name is what shows on the board. PINs are stored plainly in the Players tab — the commissioner can look one up if someone forgets. Admin can remove a player.
 

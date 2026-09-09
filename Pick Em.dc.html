@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="vmts8buqo" style="display:none"></div>
+<div data-build="rtmtuahopj" style="display:none"></div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -129,6 +129,53 @@
         </sc-for>
       </div>
 
+      <div class="blueprint" style="margin-top:24px;padding:16px;display:grid;gap:12px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Side action · Week {{ weekNum }}</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:24px;line-height:1.1;margin-top:4px">{{ rivalTitle }}</div>
+          <div style="font-size:14px;color:var(--color-neutral-700);margin-top:4px">{{ rivalLine }}</div>
+        </div>
+        <sc-if value="{{ canChallenge }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:8px;align-items:end">
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Call out</span>
+              <select class="input" value="{{ chTo }}" onChange="{{ setChTo }}" style="min-height:48px;font-size:17px"><sc-for list="{{ opponents }}" as="p" hint-placeholder-count="3"><option value="{{ p }}">{{ p }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">For ($)</span>
+              <input class="input" type="number" inputMode="numeric" min="1" value="{{ chAmt }}" onChange="{{ setChAmt }}" style="min-height:48px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600"></label>
+            <button class="btn btn-primary" onClick="{{ sendChallenge }}" disabled="{{ busyAny }}" style="min-height:48px;font-size:17px;padding:0 20px">Call out</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ hasCallouts }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;gap:6px">
+            <sc-for list="{{ callouts }}" as="c" hint-placeholder-count="2">
+              <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--color-divider);padding:8px 12px">
+                <div><div style="font-size:16px;font-weight:500">{{ c.text }}</div><div style="font-size:13px;color:var(--color-neutral-700)">{{ c.sub }}</div></div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <sc-if value="{{ c.canRespond }}" hint-placeholder-val="{{ false }}"><button class="btn btn-primary" onClick="{{ c.accept }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:15px;padding:0 14px">Accept</button><button class="btn btn-secondary" onClick="{{ c.decline }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:15px;padding:0 14px">Decline</button></sc-if>
+                  <sc-if value="{{ c.canWithdraw }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ c.withdraw }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:15px">Withdraw</button></sc-if>
+                  <span class="tag {{ c.cls }}" style="font-size:13px">{{ c.status }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="font-size:13px;color:var(--color-neutral-700)">{{ calloutHint }}</div>
+      </div>
+
+      <sc-if value="{{ showNews }}" hint-placeholder-val="{{ false }}">
+        <div class="blueprint" style="margin-top:24px;padding:14px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="display:grid;gap:6px;max-width:720px">
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">What's new · Sept 9</div>
+            <div style="font-size:15px;line-height:1.45"><strong>Weekly rival</strong> — you're paired with someone new each week; most correct picks wins. Season record on the Standings.</div>
+            <div style="font-size:15px;line-height:1.45"><strong>Callouts</strong> — call anyone out for a dollar amount; they can accept or decline. Closes at the week's first kickoff. Settle Venmo-to-Venmo.</div>
+            <div style="font-size:15px;line-height:1.45"><strong>Consensus</strong> — once a game kicks off, each card shows what % of the league took each side.</div>
+            <div style="font-size:15px;line-height:1.45"><strong>Reminders</strong> — you'll get an email if you're missing picks within 24 hours of kickoff. Standings shows who still owes picks.</div>
+          </div>
+          <button class="btn btn-ghost" onClick="{{ dismissNews }}" style="min-height:44px;font-size:15px">Got it</button>
+        </div>
+      </sc-if>
+
       <sc-if value="{{ showTiebreak }}" hint-placeholder-val="{{ true }}">
         <div class="blueprint" style="margin-top:24px;padding:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -192,7 +239,7 @@
       </div>
       <div style="overflow-x:auto">
         <table class="table" style="font-size:16px">
-          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Back</th><th style="text-align:right">Won</th><th style="text-align:right">If it ends today</th></tr></thead>
+          <thead><tr><th style="width:48px">#</th><th>Player</th><th style="text-align:right">Week {{ lastFinalWeek }}</th><th style="text-align:right">Season</th><th style="text-align:right">Back</th><th style="text-align:right">Rival</th><th style="text-align:right">Side $</th><th style="text-align:right">Won</th><th style="text-align:right">If it ends today</th></tr></thead>
           <tbody>
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
               <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
@@ -201,6 +248,8 @@
                 <td style="text-align:right;padding:10px 7px">{{ r.week }}</td>
                 <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
                 <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.back }}</td>
+                <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.rival }}</td>
+                <td style="text-align:right;padding:10px 7px;color:{{ r.sideColor }}">{{ r.side }}</td>
                 <td style="text-align:right;padding:10px 7px;font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-700)">{{ r.won }}</td>
                 <td style="text-align:right;padding:10px 7px;color:var(--color-neutral-600)">{{ r.proj }}</td>
               </tr>
@@ -467,7 +516,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.v1', BUILD = 'vmts8buqo';
+const KEY = 'pickem.v1', BUILD = 'rtmtuahopj', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -489,7 +538,7 @@ class Component extends DCLogic {
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
     this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: true }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
-      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '' };
+      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
   componentDidMount() { if (this.sync) this.load(); this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 60000); }
@@ -505,10 +554,15 @@ class Component extends DCLogic {
     } catch (e) {}
   }
   componentDidUpdate(prev) { if ((prev.apiUrl || '').trim() !== (this.props.apiUrl || '').trim()) { if (this.sync) this.load(); else this.setState({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, roster: demoRoster(PLAYERS), settings: { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS }, picks: {}, tb: {} }); } }
-  async api(body) {
+  // Apps Script occasionally answers with an HTML "busy" page instead of JSON; retry a couple of times before giving up.
+  async api(body, attempt = 0) {
     const url = this.props.apiUrl.trim();
-    const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state');
-    const text = await r.text(); let j; try { j = JSON.parse(text); } catch (e) { throw new Error('The sheet replied with something that isn\'t data. Check the Web app is deployed as "Anyone" and you copied the /exec URL.'); }
+    let text;
+    try { const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state', { cache: 'no-store' }); text = await r.text(); }
+    catch (e) { if (attempt < 2) { await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); return this.api(body, attempt + 1); } throw new Error('No response from the league sheet. Check your connection and try again.'); }
+    let j; try { j = JSON.parse(text); } catch (e) {
+      if (attempt < 2) { await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); return this.api(body, attempt + 1); }
+      throw new Error('Google is slow right now — the sheet answered with a busy page. Wait a few seconds and try again.'); }
     if (!j.ok) throw new Error(j.error || 'Request failed');
     return j;
   }
@@ -518,7 +572,7 @@ class Component extends DCLogic {
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, accessCode: this.state.settings.accessCode }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
     if (j.settings && j.settings.venmo != null) settings.venmo = String(j.settings.venmo);
-    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: [] })), settings, picks: j.picks || {}, tb, loading: false, ...(extra || {}) });
+    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl', 'cfb'], paid: [] })), settings, picks: j.picks || {}, tb, challenges: j.challenges || [], loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
   setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
@@ -529,8 +583,8 @@ class Component extends DCLogic {
   }
   persist(extra) {
     this.setState(extra, () => {
-      const { me, picks, tb, data, players, roster, settings } = this.state;
-      try { localStorage.setItem(KEY, JSON.stringify({ me, picks, tb, data, players, roster, settings })); } catch (e) {}
+      const { me, picks, tb, data, players, roster, settings, challenges } = this.state;
+      try { localStorage.setItem(KEY, JSON.stringify({ me, picks, tb, data, players, roster, settings, challenges })); } catch (e) {}
     });
   }
   pickFor(player, g, weekIsFinal) {
@@ -589,6 +643,16 @@ class Component extends DCLogic {
     this.persist({ roster });
   }
   setSetting(k, v) { const n = (k in TEXT_DEFAULTS) ? v : (v === '' ? '' : Number(v)); this.setState(s => ({ settings: { ...s.settings, [k]: n }, adminDirty: true }), () => { if (!this.sync) this.persist({}); }); }
+  challenge(c, msg) {
+    if (!this.sync) { this.persist({ challenges: this.state.challenges.concat(c) }); this.showToast(msg); return; }
+    const s = this.state.session; this.setState({ busy: 'challenge' });
+    this.api({ action: 'challenge', email: s.email, pin: s.pin, pool: c.pool, week: c.week, to: c.to, amount: c.amount }).then(j => { this.applyState(j, { busy: '' }); this.showToast(msg); }).catch(e => { this.setState({ busy: '' }); this.showToast('That didn\'t work: ' + e.message); });
+  }
+  respond(id, status, msg) {
+    if (!this.sync) { this.persist({ challenges: this.state.challenges.map(c => c.id === id ? { ...c, status } : c) }); this.showToast(msg); return; }
+    const s = this.state.session; this.setState({ busy: 'respond' });
+    this.api({ action: 'respond', email: s.email, pin: s.pin, id, status }).then(j => { this.applyState(j, { busy: '' }); this.showToast(msg); }).catch(e => { this.setState({ busy: '' }); this.showToast('That didn\'t work: ' + e.message); });
+  }
   showToast(msg) { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 3200); }
   hideToast() { clearTimeout(this.tt); this.setState({ toast: '' }); }
   renderVals() {
@@ -611,7 +675,10 @@ class Component extends DCLogic {
     const T = (a, b) => trash ? a : b;
     const games = week.games.map(g => {
       const win = winner(g), locked = g.as != null, mine = this.pickFor(me, g, locked);
-      const poolPct = players.length ? Math.round(players.filter(p => this.pickFor(p, g, locked) === (win || mine || g.home)).length / players.length * 100) : 0;
+      // consensus: who the league took, shown once the game has kicked off (picks stay hidden before that)
+      const liveG = !locked && started(g), picked = players.map(p => this.pickFor(p, g, locked)).filter(Boolean), nA = picked.filter(x => x === g.away).length;
+      const pA = picked.length ? Math.round(nA / picked.length * 100) : 0, pH = picked.length ? 100 - pA : 0, minePct = mine === g.away ? pA : mine === g.home ? pH : null;
+      const consensus = (locked || liveG) && picked.length ? `${pA}% ${g.away} · ${pH}% ${g.home}${minePct != null && minePct < 25 ? T(' · you faded the group', ' · against the group') : ''}` : '';
       let resultText = '', resultColor = 'var(--color-neutral-600)';
       if (locked) {
         if (!mine) { resultText = T('No pick. That\'s a free loss, champ.', 'No pick made'); }
@@ -629,7 +696,7 @@ class Component extends DCLogic {
         homeBg: (locked ? win === g.home : mine === g.home) ? teamColor(g.home) : 'transparent', homeFg: (locked ? win === g.home : mine === g.home) ? '#ffffff' : 'var(--color-text)', homeBd: (locked ? win === g.home : mine === g.home) ? teamColor(g.home) : 'var(--color-divider)',
         pickAway: () => this.setState(s => ({ picks: { ...s.picks, [`${me}|${g.id}`]: g.away }, dirty: true })),
         pickHome: () => this.setState(s => ({ picks: { ...s.picks, [`${me}|${g.id}`]: g.home }, dirty: true })),
-        resultText, resultColor, poolText: locked ? `${poolPct}% of the pool had ${win}` : (mine && !sync ? `${poolPct}% of the pool agrees` : '') };
+        resultText, resultColor, poolText: consensus || (mine && !sync && minePct != null ? `${minePct}% of the pool agrees` : '') };
     });
     const made = week.games.filter(g => picks[`${me}|${g.id}`]).length, total = week.games.length;
     const [myW, myL] = weekFinal ? this.record(me, week) : [0, 0];
@@ -646,6 +713,37 @@ class Component extends DCLogic {
       .sort((a, b) => a.made - b.made || a.name.localeCompare(b.name));
     const slackers = pickStatus.filter(s => total > 0 && s.made < total).length;
     const statusHint = !total ? 'No games yet.' : weekFinal ? 'Week is final.' : !slackers ? T('Everyone\'s in. Miracles happen.', 'Everyone has picked.') : `${slackers} of ${players.length} ${T('still owe picks', 'incomplete')}${nextKick ? ` · next kickoff ${nextKick}` : ''}`;
+    // side action: weekly rival (round-robin over the roster sorted by name) + callouts
+    const sortedP = players.slice().sort((a, b) => a.localeCompare(b));
+    const rivalOf = (p, n) => { const arr = sortedP.slice(); if (arr.length % 2) arr.push(null); const m = arr.length; if (m < 2) return null; const r = (n - 1) % (m - 1), rest = arr.slice(1), rot = rest.slice(rest.length - r).concat(rest.slice(0, rest.length - r)), line = [arr[0]].concat(rot), i = line.indexOf(p); return i < 0 ? null : line[m - 1 - i]; };
+    const wins = (p, w) => this.record(p, w)[0], h2h = (a, b, w) => { const x = wins(a, w), y = wins(b, w); return x > y ? 'W' : x < y ? 'L' : 'T'; };
+    const allCh = (this.state.challenges || []).filter(c => c.pool === pool);
+    const chNet = {}, rivalRec = {}; players.forEach(p => { chNet[p] = 0; rivalRec[p] = [0, 0, 0]; });
+    finals.forEach(w => {
+      players.forEach(p => { const r = rivalOf(p, w.n); if (!r) return; const o = h2h(p, r, w); rivalRec[p][o === 'W' ? 0 : o === 'L' ? 1 : 2]++; });
+      allCh.filter(c => Number(c.week) === w.n && c.status === 'accepted').forEach(c => { const o = h2h(c.from, c.to, w), amt = Number(c.amount) || 0, s = o === 'W' ? 1 : o === 'L' ? -1 : 0; chNet[c.from] = (chNet[c.from] || 0) + s * amt; chNet[c.to] = (chNet[c.to] || 0) - s * amt; });
+    });
+    const myRival = me ? rivalOf(me, week.n) : null, firstKick = week.games.filter(g => g.kick).map(g => new Date(g.kick).getTime()).sort((a, b) => a - b)[0];
+    const weekStarted = week.games.some(g => started(g) || g.as != null), calloutsOpen = total > 0 && !weekStarted && !!me;
+    const scoreLine = (a, b) => weekStarted || weekFinal ? `${a} ${wins(a, week)} – ${wins(b, week)} ${b}` : '';
+    const rivalTitle = !myRival ? (players.length < 2 ? 'Need two players for rivalries' : T('Bye week. Nobody wants a piece of you.', 'You have a bye this week.')) : T(`Your rival: ${myRival}`, `This week's rival: ${myRival}`);
+    let rivalLine = '';
+    if (myRival) { const o = weekFinal ? h2h(me, myRival, week) : null;
+      rivalLine = weekFinal ? (o === 'W' ? T(`You took it, ${scoreLine(me, myRival)}. Rub it in.`, `Won, ${scoreLine(me, myRival)}.`) : o === 'L' ? T(`Lost, ${scoreLine(me, myRival)}. Ouch.`, `Lost, ${scoreLine(me, myRival)}.`) : T(`Pushed, ${scoreLine(me, myRival)}. Nobody wins.`, `Tied, ${scoreLine(me, myRival)}.`))
+        : weekStarted ? `Live: ${scoreLine(me, myRival)}` : T('Most correct picks this week wins the matchup. New rival every week, record on the standings.', 'Most correct picks this week wins. New rival every week; record shown on the standings.'); }
+    const chFor = (a, b) => allCh.find(c => Number(c.week) === week.n && ((c.from === a && c.to === b) || (c.from === b && c.to === a)) && (c.status === 'pending' || c.status === 'accepted'));
+    const opponents = players.filter(p => p !== me && !chFor(me, p));
+    const chTo = opponents.includes(this.state.chTo) ? this.state.chTo : (opponents[0] || ''), chAmt = this.state.chAmt;
+    const callouts = allCh.filter(c => Number(c.week) === week.n).sort((a, b) => String(b.created || '').localeCompare(String(a.created || ''))).map(c => {
+      const amt = money(c.amount), o = weekFinal && c.status === 'accepted' ? h2h(c.from, c.to, week) : null;
+      const status = c.status === 'pending' ? T('waiting on ' + c.to, 'pending') : c.status === 'declined' ? T(`${c.to} chickened out`, 'declined') : c.status === 'withdrawn' ? 'withdrawn' : o ? (o === 'T' ? 'push' : `${o === 'W' ? c.from : c.to} wins ${amt}`) : weekStarted ? 'live' : 'on';
+      return { id: c.id, text: T(`${c.from} called out ${c.to} · ${amt}`, `${c.from} vs ${c.to} · ${amt}`), sub: c.status === 'accepted' ? (scoreLine(c.from, c.to) || T('Accepted. It\'s on.', 'Accepted.')) : '', status, cls: c.status === 'accepted' ? 'tag-accent' : c.status === 'pending' ? 'tag-outline' : 'tag-neutral',
+        canRespond: c.status === 'pending' && c.to === me && calloutsOpen, canWithdraw: c.status === 'pending' && c.from === me && calloutsOpen,
+        accept: () => this.respond(c.id, 'accepted', T(`It's on with ${c.from}.`, 'Challenge accepted.')), decline: () => this.respond(c.id, 'declined', T('Declined. Coward.', 'Challenge declined.')), withdraw: () => this.respond(c.id, 'withdrawn', 'Callout withdrawn') };
+    });
+    const kickLabel = firstKick ? new Date(firstKick).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'kickoff';
+    const calloutHint = !total ? '' : weekStarted ? T('Callouts closed at the first kickoff. Settle Venmo-to-Venmo — the league doesn\'t hold side money.', 'Callouts closed at the first kickoff. Side bets are settled between players.')
+      : T(`Call someone out for the week: most correct picks wins the cash, ties push. They can decline. Closes ${kickLabel}. Settle Venmo-to-Venmo.`, `Challenge a player for the week: most correct picks wins, ties push. They may decline. Closes ${kickLabel}. Settled between players.`);
     // standings
     const rowsRaw = players.map(p => { let sw = 0, sl = 0, lw = [0, 0]; finals.forEach((w, i) => { const r = this.record(p, w); sw += r[0]; sl += r[1]; if (i === finals.length - 1) lw = r; }); return { name: p, sw, sl, lw }; })
       .sort((a, b) => b.sw - a.sw || b.lw[0] - a.lw[0] || a.name.localeCompare(b.name));
@@ -655,7 +753,7 @@ class Component extends DCLogic {
     let rank = 0, prevW = -1;
     const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
       rank, name: r.name, week: `${r.lw[0]}-${r.lw[1]}`, season: `${r.sw}-${r.sl}`, pct: r.sw + r.sl ? Math.round(r.sw / (r.sw + r.sl) * 1000) / 10 + '%' : '—',
-      won: won[r.name] ? money(won[r.name]) : '—', proj: rank <= 3 && finals.length ? money(seasonPot * pct[rank - 1] / 100 / rowsRaw.filter(x => x.sw === r.sw).length) : '',
+      won: won[r.name] ? money(won[r.name]) : '—', rival: rivalRec[r.name].join('-'), side: chNet[r.name] ? (chNet[r.name] > 0 ? '+' : '−') + money(Math.abs(chNet[r.name])) : '—', sideColor: chNet[r.name] > 0 ? 'var(--color-accent-700)' : chNet[r.name] < 0 ? '#b42318' : 'var(--color-neutral-600)', proj: rank <= 3 && finals.length ? money(seasonPot * pct[rank - 1] / 100 / rowsRaw.filter(x => x.sw === r.sw).length) : '',
       back: (top ? top.sw : 0) - r.sw === 0 ? '—' : String((top ? top.sw : 0) - r.sw), bg: isMe ? 'var(--color-accent-100)' : 'transparent', weight: isMe ? '600' : '400',
       tag: isMe ? 'You' : (i === 0 ? T('Big dog', 'Leader') : i === rowsRaw.length - 1 ? T('Basement', 'Last') : ''), tagDisplay: isMe || i === 0 || i === rowsRaw.length - 1 ? 'inline-flex' : 'none' }; });
     const myRow = rows.find(r => r.name === me);
@@ -686,6 +784,11 @@ class Component extends DCLogic {
       goPicks: () => this.setState({ tab: 'picks' }), goStand: () => this.setState({ tab: 'stand' }), goPast: () => this.setState({ tab: 'past' }),
       isPicks: tab === 'picks', isStand: tab === 'stand', isPast: tab === 'past',
       pickStatus, statusHint,
+      showNews: !this.state.newsSeen, dismissNews: () => { this.setState({ newsSeen: true }); try { localStorage.setItem('pickem.news', NEWS); } catch (e) {} },
+      rivalTitle, rivalLine, callouts, hasCallouts: callouts.length > 0, calloutHint, canChallenge: calloutsOpen && opponents.length > 0, opponents, chTo, chAmt,
+      setChTo: e => this.setState({ chTo: e.target.value }), setChAmt: e => this.setState({ chAmt: e.target.value }),
+      sendChallenge: () => { const amt = Number(chAmt); if (!chTo || !(amt > 0)) { this.showToast('Pick a player and an amount.'); return; }
+        this.challenge({ id: 'c' + Date.now().toString(36), pool, week: week.n, from: me, to: chTo, amount: amt, status: 'pending', created: new Date().toISOString() }, T(`${chTo} has been called out for ${money(amt)}.`, `Challenge sent to ${chTo}.`)); },
       weekNum: week.n, prevWeek: () => this.setState({ week: wi - 1 }), nextWeek: () => this.setState({ week: wi + 1 }), noPrev: wi === 0, noNext: wi === weeks.length - 1,
       games, weekOpen: !weekClosed, weekLocked: weekClosed,
       progressText: weekFinal ? `You went ${myW}-${myL}` : `${made} of ${total} picked`, progressPct: weekFinal ? 100 : (total ? Math.round(made / total * 100) : 0),

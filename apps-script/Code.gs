@@ -7,7 +7,8 @@ const HEADERS = {
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
   Settings: ['key', 'value'],
-  Reminders: ['player', 'gameId', 'sent']
+  Reminders: ['player', 'gameId', 'sent'],
+  Challenges: ['id', 'pool', 'week', 'from', 'to', 'amount', 'status', 'created']
 };
 // Reminder emails: a player with no pick on a game kicking off within REMIND_HOURS gets one email (per game) with a link.
 // Set leagueName / leagueUrl in the Settings tab; these are the fallbacks.
@@ -58,14 +59,23 @@ function remind() {
 }
 
 function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetByName(n); if (!s) { s = ss.insertSheet(n); s.appendRow(HEADERS[n]); s.setFrozenRows(1); } return s; }
-function rows_(n) { const v = sheet_(n).getDataRange().getValues(); const h = v.shift(); return v.filter(r => String(r[0]) !== '').map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]))); }
-function writeAll_(n, objs) { const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); }
+// Each request reads every tab once (memoized for the life of the execution); writes drop the memo.
+// Before this, state_() re-read the Settings tab a dozen times per call — the main reason the sheet got sluggish.
+const _rows = {};
+function rows_(n) { if (!_rows[n]) { const v = sheet_(n).getDataRange().getValues(); const h = v.shift(); _rows[n] = v.filter(r => String(r[0]) !== '').map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]))); } return _rows[n].map(r => ({ ...r })); }
+function append_(n, row) { sheet_(n).appendRow(row); delete _rows[n]; }
+function writeAll_(n, objs) { const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); delete _rows[n]; }
 function setting_(k) { const r = rows_('Settings').find(x => x.key === k); return r ? String(r.value) : ''; }
 function setSetting_(k, v) { const all = rows_('Settings'); const r = all.find(x => x.key === k); if (r) r.value = v; else all.push({ key: k, value: v }); writeAll_('Settings', all); }
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
 function doGet(e) { try { const a = (e.parameter || {}).action; if (a === 'state') return out_({ ok: true, ...state_() }); return out_({ ok: true, service: 'pickem' }); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
-function doPost(e) { try { return out_(handle_(JSON.parse(e.postData.contents || '{}'))); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
+function doPost(e) {
+  const b = JSON.parse(e.postData.contents || '{}'), lock = LockService.getScriptLock();
+  try { if (b.action !== 'login') lock.waitLock(20000); return out_(handle_(b)); }
+  catch (err) { return out_({ ok: false, error: String(err.message || err) }); }
+  finally { try { lock.releaseLock(); } catch (e2) {} }
+}
 
 function state_() {
   const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = p.pick);
@@ -73,7 +83,11 @@ function state_() {
   const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid) }));
   const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
   settings.venmo = setting_('venmo');   // accessCode is deliberately NOT sent — admins see it via the 'auth' op
-  return { data: { nfl: pool_('nfl'), cfb: pool_('cfb') }, players: roster.map(p => p.name), roster, settings, picks, tb };
+  const challenges = rows_('Challenges').map(c => ({ id: String(c.id), pool: String(c.pool), week: Number(c.week), from: String(c.from), to: String(c.to), amount: Number(c.amount), status: String(c.status), created: c.created ? new Date(c.created).toISOString() : '' }));
+  return { data: { nfl: pool_('nfl'), cfb: pool_('cfb') }, players: roster.map(p => p.name), roster, settings, picks, tb, challenges };
+}
+// True once any game of the week has kicked off or been scored — callouts close then.
+function weekStarted_(pool, week) { const now = new Date(); return rows_('Games').some(g => g.pool === pool && Number(g.week) === week && ((g.kick && new Date(g.kick) <= now) || g.as !== '')); 
 }
 function pool_(pool) {
   const gs = rows_('Games').filter(g => g.pool === pool);
@@ -106,13 +120,13 @@ function handle_(b) {
       if (findEmail(email)) throw new Error('That email is already registered. Sign in instead.');
       const pools = (Array.isArray(b.pools) ? b.pools : ['nfl', 'cfb']).filter(p => p === 'nfl' || p === 'cfb');
       if (!pools.length) throw new Error('Pick at least one pool');
-      sheet_('Players').appendRow([name, email, String(b.pin), new Date(), pools.join(','), '']);
+      append_('Players', [name, email, String(b.pin), new Date(), pools.join(','), '']);
       return { ok: true, name, email };
     }
     case 'login': { const p = auth(); return { ok: true, name: String(p.name), email: String(p.email) }; }
     case 'savePicks': {
-      const p = auth(), me = String(p.name), lock = LockService.getScriptLock(); lock.waitLock(10000);
-      try {
+      const p = auth(), me = String(p.name);
+      {
         const games = rows_('Games'), now = new Date();
         const all = rows_('Picks').filter(x => !(String(x.player) === me && (b.picks || {})[x.gameId] !== undefined));
         Object.entries(b.picks || {}).forEach(([gid, pick]) => {
@@ -125,8 +139,29 @@ function handle_(b) {
         const tbs = rows_('Tiebreaks').filter(x => !(String(x.player) === me && (b.tb || {})[x.key] !== undefined));
         Object.entries(b.tb || {}).forEach(([k, v]) => tbs.push({ player: me, key: k, value: v }));
         writeAll_('Tiebreaks', tbs);
-      } finally { lock.releaseLock(); }
+      }
       return { ok: true, ...state_() };
+    }
+    // Head-to-head callouts: challenger names opponent + stake; opponent accepts or declines; closes at the week's first kickoff.
+    case 'challenge': {
+      const p = auth(), me = String(p.name), to = String(b.to || '').trim(), amt = Number(b.amount), week = Number(b.week), pool = String(b.pool);
+      if (!findName(to) || norm(to) === norm(me)) throw new Error('Pick someone else to call out');
+      if (!(amt > 0)) throw new Error('Amount must be more than $0');
+      if (weekStarted_(pool, week)) throw new Error('Callouts closed at the first kickoff');
+      const all = rows_('Challenges');
+      if (all.some(c => String(c.pool) === pool && Number(c.week) === week && ['pending', 'accepted'].includes(String(c.status)) && ((String(c.from) === me && String(c.to) === to) || (String(c.from) === to && String(c.to) === me)))) throw new Error('You two already have a callout this week');
+      append_('Challenges', ['c' + Date.now().toString(36), pool, week, me, to, amt, 'pending', new Date()]);
+      return { ok: true, ...state_() };
+    }
+    case 'respond': {
+      const p = auth(), me = String(p.name), all = rows_('Challenges'), c = all.find(x => String(x.id) === String(b.id)); if (!c) throw new Error('No such callout');
+      const st = String(b.status);
+      if (String(c.status) !== 'pending') throw new Error('That callout is already settled');
+      if (!['accepted', 'declined', 'withdrawn'].includes(st)) throw new Error('Bad status');
+      if ((st === 'accepted' || st === 'declined') && String(c.to) !== me) throw new Error('Only the player called out can answer');
+      if (st === 'withdrawn' && String(c.from) !== me) throw new Error('Only the challenger can withdraw');
+      if (weekStarted_(String(c.pool), Number(c.week))) throw new Error('Callouts closed at the first kickoff');
+      c.status = st; writeAll_('Challenges', all); return { ok: true, ...state_() };
     }
     case 'admin': if (String(b.adminPin) !== setting_('adminPin')) throw new Error('Wrong admin PIN'); return admin_(b);
   }
@@ -154,6 +189,7 @@ function admin_(b) {
     case 'removePlayer':
       writeAll_('Players', rows_('Players').filter(p => String(p.name) !== b.name));
       writeAll_('Picks', rows_('Picks').filter(p => String(p.player) !== b.name));
+      writeAll_('Challenges', rows_('Challenges').filter(c => String(c.from) !== b.name && String(c.to) !== b.name));
       return { ok: true, ...state_() };
     case 'importWeek': {
       const P = pool_(b.pool), w = P.weeks[b.week - 1]; if (!w) throw new Error('No such week');
