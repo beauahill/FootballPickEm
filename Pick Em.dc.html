@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="qrmu07rd0w" style="display:none"></div>
+<div data-build="vsmu0885o7" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v vsmu0885o7</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -556,7 +556,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.v1', BUILD = 'qrmu07rd0w', NEWS = '2026-09-09';
+const KEY = 'pickem.v1', BUILD = 'vsmu0885o7', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -706,7 +706,8 @@ class Component extends DCLogic {
     const weeklyPrize = pot * wShare / 100 / weeksN, seasonPot = pot * (100 - wShare) / 100;
     const pct = [Number(settings.pct1) || 0, Number(settings.pct2) || 0, Number(settings.pct3) || 0], pctOk = pct[0] + pct[1] + pct[2] === 100;
     const P = (this.state.data && this.state.data[pool]) || { weeks: [] }; if (!P.weeks || !P.weeks.length) P.weeks = [{ n: 1, games: [] }]; const weeks = P.weeks;
-    const finals = weeks.filter(isFinal), openIdx = weeks.findIndex(w => !isFinal(w));
+    // standings count every week with at least one scored game, not just fully-final weeks (a partial week must not blank the table)
+    const finals = weeks.filter(w => w.games.some(scored)), settled = weeks.filter(isFinal), openIdx = weeks.findIndex(w => !isFinal(w));
     const wi = this.state.week ?? (openIdx < 0 ? weeks.length - 1 : openIdx);
     const week = weeks[wi], weekFinal = isFinal(week);
     const now = Date.now(), started = x => !!x.kick && new Date(x.kick).getTime() <= now;
@@ -767,7 +768,7 @@ class Component extends DCLogic {
     const wins = (p, w) => this.record(p, w)[0], h2h = (a, b, w) => { const x = wins(a, w), y = wins(b, w); return x > y ? 'W' : x < y ? 'L' : 'T'; };
     const allCh = (this.state.challenges || []).filter(c => c.pool === pool);
     const chNet = {}, rivalRec = {}; players.forEach(p => { chNet[p] = 0; rivalRec[p] = [0, 0, 0]; });
-    finals.forEach(w => {
+    settled.forEach(w => {
       players.forEach(p => { const r = rivalOf(p, w.n); if (!r) return; const o = h2h(p, r, w); rivalRec[p][o === 'W' ? 0 : o === 'L' ? 1 : 2]++; });
       allCh.filter(c => Number(c.week) === w.n && c.status === 'accepted').forEach(c => { const o = h2h(c.from, c.to, w), amt = Number(c.amount) || 0, s = o === 'W' ? 1 : o === 'L' ? -1 : 0; chNet[c.from] = (chNet[c.from] || 0) + s * amt; chNet[c.to] = (chNet[c.to] || 0) - s * amt; });
     });
@@ -796,7 +797,7 @@ class Component extends DCLogic {
     const rowsRaw = players.map(p => { let sw = 0, sl = 0, lw = [0, 0]; finals.forEach((w, i) => { const r = this.record(p, w); sw += r[0]; sl += r[1]; if (i === finals.length - 1) lw = r; }); return { name: p, sw, sl, lw }; })
       .sort((a, b) => b.sw - a.sw || b.lw[0] - a.lw[0] || a.name.localeCompare(b.name));
     const won = {}; players.forEach(p => won[p] = 0);
-    finals.forEach(w => { const recs = players.map(p => ({ p, w: this.record(p, w)[0] })), best = Math.max(0, ...recs.map(x => x.w)), ws = recs.filter(x => x.w === best); if (best > 0) ws.forEach(x => won[x.p] += weeklyPrize / ws.length); });
+    settled.forEach(w => { const recs = players.map(p => ({ p, w: this.record(p, w)[0] })), best = Math.max(0, ...recs.map(x => x.w)), ws = recs.filter(x => x.w === best); if (best > 0) ws.forEach(x => won[x.p] += weeklyPrize / ws.length); });
     const top = rowsRaw[0], bottom = rowsRaw[rowsRaw.length - 1];
     let rank = 0, prevW = -1;
     const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
@@ -914,7 +915,7 @@ class Component extends DCLogic {
       playersText: players.join('\n'), setPlayers: e => { const list = e.target.value.split('\n').map(x => x.trim()).filter(Boolean); if (list.length) this.persist({ players: list, me: list.includes(me) ? me : list[0] }); },
       playerCount: players.length, playersHint: sync ? 'Tap a pool to flip Paid / Unpaid. Players register themselves on the sign-in screen.' : 'Tap a pool to flip Paid / Unpaid. Demo: edit names one per line below.',
       resetAll: () => { if (confirm('Reset games, scores and players to the sample data? Picks are kept.')) this.persist({ data: JSON.parse(JSON.stringify(POOLS)), players: PLAYERS, week: null, pastWeek: null }); },
-      standHint: finals.length ? `Through Week ${finals[finals.length - 1].n} · ${players.length} players` : 'No results yet',
+      standHint: finals.length ? `Through Week ${finals[finals.length - 1].n}${isFinal(finals[finals.length - 1]) ? '' : ' (in progress)'} · ${players.length} players` : 'No results yet',
       lastFinalWeek: finals.length ? finals[finals.length - 1].n : '—',
       leaderName: top ? top.name : '—', leaderLine: top ? `${top.sw}-${top.sl} ${T('and won\'t shut up about it', 'on the season')}` : '',
       myRankText: myRow ? `#${myRow.rank} of ${players.length}` : '—', myLine: myRow ? `${myRow.season} · ${myRow.back === '—' ? T('You\'re the big dog', 'Leading') : `${myRow.back} back`}` : '',
