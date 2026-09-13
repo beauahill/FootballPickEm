@@ -130,13 +130,17 @@ function handle_(b) {
       const p = auth(), me = String(p.name);
       {
         const games = rows_('Games'), now = new Date();
-        const all = rows_('Picks').filter(x => !(String(x.player) === me && (b.picks || {})[x.gameId] !== undefined));
+        // Only games that are still open may change. Locked games (kicked off or scored) are left exactly as they are —
+        // an earlier version deleted the old pick before checking the lock, which wiped picks on games already played.
+        const open = {};
         Object.entries(b.picks || {}).forEach(([gid, pick]) => {
           const g = games.find(x => String(x.id) === gid);
-          if (g && (g.as !== '' || g.hs !== '')) return;   // scores in — game is locked
-          if (g && g.kick && new Date(g.kick) <= now) return;   // game has kicked off
-          all.push({ player: me, gameId: gid, pick, updated: new Date() });
+          if (g && (g.as !== '' || g.hs !== '')) return;
+          if (g && g.kick && new Date(g.kick) <= now) return;
+          open[gid] = pick;
         });
+        const all = rows_('Picks').filter(x => !(String(x.player) === me && open[String(x.gameId)] !== undefined));
+        Object.entries(open).forEach(([gid, pick]) => all.push({ player: me, gameId: gid, pick, updated: new Date() }));
         writeAll_('Picks', all);
         const tbs = rows_('Tiebreaks').filter(x => !(String(x.player) === me && (b.tb || {})[x.key] !== undefined));
         Object.entries(b.tb || {}).forEach(([k, v]) => tbs.push({ player: me, key: k, value: v }));
