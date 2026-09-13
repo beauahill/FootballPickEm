@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="vsmu0885o7" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v vsmu0885o7</div>
+<div data-build="tbmu08mtt8" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v tbmu08mtt8</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -545,7 +545,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.wyo.v1', BUILD = 'vsmu0885o7', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'tbmu08mtt8', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -601,7 +601,7 @@ class Component extends DCLogic {
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, accessCode: this.state.settings.accessCode }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
     if (j.settings && j.settings.venmo != null) settings.venmo = String(j.settings.venmo);
-    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl'], paid: [] })), settings, picks: j.picks || {}, tb, challenges: j.challenges || [], loading: false, ...(extra || {}) });
+    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl'], paid: [] })), settings, picks: j.picks || {}, tb, allTb: j.tb || {}, challenges: j.challenges || [], loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
   setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
@@ -622,6 +622,7 @@ class Component extends DCLogic {
     if (player === this.state.me) return stored || (weekIsFinal ? simPick(player, g) : null);
     return simPick(player, g);
   }
+  tbFor(player, key) { if (this.sync) return this.state.allTb ? this.state.allTb[`${player}|${key}`] : undefined; return player === this.state.me ? this.state.tb[key] : undefined; }
   record(player, week) { let w = 0, l = 0; for (const g of week.games) { const win = winner(g); if (!win) continue; this.pickFor(player, g, true) === win ? w++ : l++; } return [w, l]; }
   mutate(fn, done) { this.setState(s => { const data = JSON.parse(JSON.stringify(s.data)); fn(data); return { data, adminDirty: true }; }, () => { this.persist({}); if (done) done(); }); }
   // ESPN's public scoreboard, fetched from this browser (Google's servers are blocked by ESPN).
@@ -786,7 +787,12 @@ class Component extends DCLogic {
     const rowsRaw = players.map(p => { let sw = 0, sl = 0, lw = [0, 0]; finals.forEach((w, i) => { const r = this.record(p, w); sw += r[0]; sl += r[1]; if (i === finals.length - 1) lw = r; }); return { name: p, sw, sl, lw }; })
       .sort((a, b) => b.sw - a.sw || b.lw[0] - a.lw[0] || a.name.localeCompare(b.name));
     const won = {}; players.forEach(p => won[p] = 0);
-    settled.forEach(w => { const recs = players.map(p => ({ p, w: this.record(p, w)[0] })), best = Math.max(0, ...recs.map(x => x.w)), ws = recs.filter(x => x.w === best); if (best > 0) ws.forEach(x => won[x.p] += weeklyPrize / ws.length); });
+    // weekly winners: most correct, then closest guess at total points in the week's last game
+    const weekWinners = w => { const recs = players.map(p => ({ p, w: this.record(p, w)[0] })), best = Math.max(0, ...recs.map(x => x.w)); let ws = recs.filter(x => x.w === best).map(x => x.p); if (best === 0) return [];
+      const lg = w.games[w.games.length - 1], totalPts = lg && scored(lg) ? Number(lg.as) + Number(lg.hs) : null;
+      if (ws.length > 1 && totalPts != null) { const guess = p => { const v = this.tbFor(p, `${pool}-${w.n}`); return v === '' || v == null || Number.isNaN(Number(v)) ? Infinity : Math.abs(Number(v) - totalPts); }; const bestD = Math.min(...ws.map(guess)); if (bestD !== Infinity) ws = ws.filter(p => guess(p) === bestD); }
+      return ws; };
+    settled.forEach(w => { const ws = weekWinners(w); ws.forEach(p => won[p] += weeklyPrize / ws.length); });
     const top = rowsRaw[0], bottom = rowsRaw[rowsRaw.length - 1];
     let rank = 0, prevW = -1;
     const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
@@ -796,14 +802,15 @@ class Component extends DCLogic {
       tag: isMe ? 'You' : (i === 0 ? T('Big dog', 'Leader') : i === rowsRaw.length - 1 ? T('Basement', 'Last') : ''), tagDisplay: isMe || i === 0 || i === rowsRaw.length - 1 ? 'inline-flex' : 'none' }; });
     const myRow = rows.find(r => r.name === me);
     // past
-    const pw = finals.find(w => w.n === this.state.pastWeek) || finals[finals.length - 1];
+    const pw = settled.find(w => w.n === this.state.pastWeek) || settled[settled.length - 1];   // only fully-final weeks belong in Past Weeks
     let pastVals = { hasPast: false, noPast: true, pastGames: [], finalWeeks: [] };
     if (pw) {
       const recs = players.map(p => ({ p, r: this.record(p, pw) })).sort((a, b) => b.r[0] - a.r[0]);
-      const best = recs[0] || { p: '—', r: [0, 0] }, worst = recs[recs.length - 1] || best, meRec = recs.find(x => x.p === me), myR = meRec ? meRec.r : [0, 0];
+      const ws = weekWinners(pw), best = ws.length ? { p: ws.join(' & '), r: recs.find(x => x.p === ws[0]).r } : (recs[0] || { p: '—', r: [0, 0] }), worst = recs[recs.length - 1] || best, meRec = recs.find(x => x.p === me), myR = meRec ? meRec.r : [0, 0];
+      const tiedTop = recs.filter(x => x.r[0] === best.r[0]).length, tbNote = tiedTop > 1 && ws.length === 1 ? T(' Won the tiebreaker.', ' Won on the tiebreaker.') : tiedTop > 1 && ws.length > 1 ? T(' Split — tiebreaker didn\'t settle it.', ' Tied; prize split.') : '';
       pastVals = { hasPast: true, noPast: false, pastWeekNum: pw.n,
-        finalWeeks: finals.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
-        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize)}. ${T('Insufferable all week.', 'Best record this week.')}`,
+        finalWeeks: settled.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
+        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize / Math.max(1, ws.length))}.${tbNote || ' ' + T('Insufferable all week.', 'Best record this week.')}`,
         pastLoser: worst.p, pastLoserLine: `${worst.r[0]}-${worst.r[1]}. ${T('Coin flips would\'ve done better.', 'Worst record this week.')}`,
         pastMyRecord: `${myR[0]}-${myR[1]}`, pastMyLine: myR[0] === best.r[0] ? T('Top of the pile. Enjoy it.', 'Tied for the top.') : myR[0] === worst.r[0] ? T('Rock bottom. Nowhere to go but up.', 'Bottom of the week.') : `${best.r[0] - myR[0]} ${T('back of the big dog', 'behind the leader')}`,
         pastGames: pw.games.map(g => { const win = winner(g), mine = this.pickFor(me, g, true); const pct = Math.round(players.filter(p => this.pickFor(p, g, true) === win).length / players.length * 100);

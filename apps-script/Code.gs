@@ -253,7 +253,11 @@ function sendResults_(pool, weekN) {
   const rows = players.map(p => { const n = String(p.name), wk = rec(n, w); let sw = 0, sl = 0; finals.forEach(f => { const r = rec(n, f); sw += r[0]; sl += r[1]; }); return { n, ww: wk[0], wl: wk[1], sw, sl }; }).sort((a, b) => b.sw - a.sw || b.ww - a.ww || a.n.localeCompare(b.n));
   if (!rows.length) return 0;
   const by = {}; rows.forEach(r => by[r.n] = r);
-  const weekRows = rows.slice().sort((a, b) => b.ww - a.ww || a.n.localeCompare(b.n)), best = weekRows[0].ww, wins = weekRows.filter(r => r.ww === best), worst = weekRows[weekRows.length - 1];
+  const weekRows = rows.slice().sort((a, b) => b.ww - a.ww || a.n.localeCompare(b.n)), best = weekRows[0].ww, worst = weekRows[weekRows.length - 1];
+  let wins = weekRows.filter(r => r.ww === best);
+  // tie → closest guess at total points in the week's last game
+  const lg = w.games[w.games.length - 1], totalPts = lg && lg.as != null && lg.hs != null ? lg.as + lg.hs : null;
+  if (wins.length > 1 && totalPts != null) { const tbs = {}; rows_('Tiebreaks').forEach(t => tbs[t.player + '|' + t.key] = t.value); const guess = r => { const v = tbs[r.n + '|' + pool + '-' + weekN]; return v === '' || v == null || isNaN(Number(v)) ? Infinity : Math.abs(Number(v) - totalPts); }; const bd = Math.min.apply(null, wins.map(guess)); if (bd !== Infinity) wins = wins.filter(r => guess(r) === bd); }
   const names = rows.map(r => r.n).sort((a, b) => a.localeCompare(b));
   const rivalOf = (p, n) => { const arr = names.slice(); if (arr.length % 2) arr.push(null); const m = arr.length; if (m < 2) return null; const r = (n - 1) % (m - 1), rest = arr.slice(1), rot = rest.slice(rest.length - r).concat(rest.slice(0, rest.length - r)), line = [arr[0]].concat(rot), i = line.indexOf(p); return i < 0 ? null : line[m - 1 - i]; };
   const label = pool === 'nfl' ? 'NFL' : 'College', name = setting_('leagueName') || LEAGUE_NAME, url = setting_('leagueUrl') || LEAGUE_URL;
