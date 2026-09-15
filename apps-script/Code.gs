@@ -230,16 +230,17 @@ function pull_(pool, week) {
 function autoPull() {
   ['nfl', 'cfb'].forEach(pool => {
     try { autoImport_(pool); } catch (e) { console.warn('autoImport ' + pool + ': ' + e); }
-    pool_(pool).weeks.forEach(w => { if (w.games.some(g => g.as == null || g.hs == null)) pull_(pool, w.n); });
+    pool_(pool).weeks.forEach(w => { if (w.games.some(g => g.as == null || g.hs == null)) { try { pull_(pool, w.n); } catch (e) { console.warn('pull ' + pool + ' wk' + w.n + ': ' + e); } } });
   });
-  try { weeklyResults_(); } catch (e) { console.warn('weeklyResults: ' + e); }
+  weeklyResults_();
 }
 // After the last game of a week is scored, email everyone in that pool the results once.
 function weeklyResults_() {
   ['nfl', 'cfb'].forEach(pool => pool_(pool).weeks.forEach(w => {
     if (!w.games.length || !w.games.every(g => g.as != null && g.hs != null)) return;
     if (setting_('resultsSent_' + pool + '_' + w.n)) return;
-    sendResults_(pool, w.n);
+    try { const n = sendResults_(pool, w.n); console.log('results ' + pool + ' wk' + w.n + ': sent to ' + n); }
+    catch (e) { console.warn('results ' + pool + ' wk' + w.n + ': ' + e); }
   }));
 }
 function sendResults_(pool, weekN) {
