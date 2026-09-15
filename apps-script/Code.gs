@@ -285,8 +285,10 @@ function sendResults_(pool, weekN) {
   if (tbWon) { const g = tbVal(wins[0]); L.push('  Won on the tiebreaker — ' + tied + ' tied at ' + best + ' correct. Total points in ' + lg.away + ' at ' + lg.home + ': ' + totalPts + (g != null ? '. ' + wins[0].n + ' guessed ' + g + '.' : '.')); }
   else if (tbSplit) L.push('  ' + tied + ' tied at ' + best + ' correct and the tiebreaker didn\'t settle it — prize split.');
   L.push('BASEMENT: ' + worst.n + ' (' + worst.ww + '-' + worst.wl + ')');
-  L.push('', 'THIS WEEK'); weekRows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.ww + '-' + r.wl + (tbWon && r.n === wins[0].n ? '  (tiebreaker)' : '')));
-  L.push('', 'SEASON'); rows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.sw + '-' + r.sl + (i ? '  (' + (rows[0].sw - r.sw) + ' back)' : '')));
+  const rk = (arr, key) => { let rank = 0, prev = null; return arr.map((r, i) => { if (r[key] !== prev) { rank = i + 1; prev = r[key]; } const tie = arr.filter(x => x[key] === r[key]).length > 1; return (tie ? 'T' : '') + rank + '.'; }); };
+  const wr = rk(weekRows, 'ww'), sr = rk(rows, 'sw');
+  L.push('', 'THIS WEEK'); weekRows.forEach((r, i) => L.push('  ' + wr[i] + ' ' + r.n + '  ' + r.ww + '-' + r.wl + (tbWon && r.n === wins[0].n ? '  (tiebreaker)' : '')));
+  L.push('', 'SEASON'); rows.forEach((r, i) => L.push('  ' + sr[i] + ' ' + r.n + '  ' + r.sw + '-' + r.sl + (rows[0].sw - r.sw ? '  (' + (rows[0].sw - r.sw) + ' back)' : '')));
   const seen = new Set(), riv = [];
   names.forEach(n => { const r = rivalOf(n, weekN); if (!r || seen.has(n)) return; seen.add(n); seen.add(r); riv.push('  ' + n + ' ' + by[n].ww + ' – ' + by[r].ww + ' ' + r + (by[n].ww === by[r].ww ? '  (push)' : '')); });
   if (riv.length) L.push('', 'RIVALRIES', ...riv);

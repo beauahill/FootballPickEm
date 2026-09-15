@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="cdmu0901hn" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v cdmu0901hn</div>
+<div data-build="mu3bu8y4" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v mu3bu8y4</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -556,7 +556,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.wyo.v1', BUILD = 'cdmu0901hn', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'mu3bu8y4', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -721,6 +721,33 @@ class Component extends DCLogic {
     const countdownColor = weekFinal || allStarted ? 'var(--color-neutral-600)' : nextMs != null && nextMs < 3600e3 && unpickedOpen ? '#b42318' : 'var(--color-neutral-700)';
     const key = `${pool}-${week.n}`;
     const T = (a, b) => trash ? a : b;
+    // Trash talk pools. Seeded by game/week so a line sticks for that card instead of reshuffling every render.
+    const hashS = s => { let x = 0; for (let i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) | 0; return Math.abs(x); };
+    const pick = (seed, arr) => arr[hashS(String(seed) + '|' + me) % arr.length];
+    const TT = {
+      hit: ['Nailed it.', 'Called it. Bow down.', 'Easy money.', 'Like you had the script.', 'Never in doubt. Allegedly.', 'Genius. Or lucky. We\'ll say genius.', 'That one was never close.', 'Ice in your veins.', 'Textbook. Frame it.', 'Somebody\'s been watching film.', 'You saw that coming? Sure you did.', 'Vegas should be worried.', 'Correct. Don\'t let it go to your head.', 'Chalk it up. Literally.', 'Even a broken clock, etc.', 'Big brain move.'],
+      miss: m => [`You had ${m}. Swing and a miss.`, `${m}? Bold. Wrong, but bold.`, `${m} let you down. Again.`, `You rode ${m} straight off a cliff.`, `${m}. The tape doesn't lie.`, `A coin would've picked better than ${m}.`, `${m} was a choice. A bad one.`, `Thanks for the ${m} donation.`, `${m}? Who hurt you?`, `${m} owes you an apology.`, `You and ${m} went down together.`, `Explain ${m}. We'll wait.`, `${m} was the trap and you walked right in.`, `Every ${m} fan felt that. So did you.`, `Trusting ${m} was your first mistake.`, `${m}. Yikes.`],
+      noPick: ['That\'s a free loss, champ.', 'Forgot to pick. The league thanks you.', 'No pick. Bold strategy, Cotton.', 'You had one job.', 'Couldn\'t even guess? Brutal.', 'A blank. Everyone saw it.', 'Zero effort, zero points.', 'Too busy? The league wasn\'t.', 'You ghosted this game.', 'Free win for everybody else.', 'The rest of us appreciate the head start.', 'Crickets.'],
+      late: ['Too late. Kickoff came and went.', 'The game started without you. Rude of it.', 'Missed the window. Set an alarm next time.', 'Locked and you\'re not in it. Classic.', 'Kickoff waits for no one. Especially you.', 'That door closed. Loudly.', 'Watching from the sidelines on this one.', 'The one that got away.'],
+      open: ['Pick one. Any one. Just pick.', 'Clock\'s ticking. Commit.', 'Flip a coin if you have to.', 'The teams are right there. Choose.', 'Stalling won\'t help.', 'Trust your gut. It\'s wrong, but trust it.', 'Still empty. Everyone can see that.', 'Analysis paralysis is not a strategy.', 'Make a call. Own it.', 'Don\'t make the league wait on you.'],
+      winner: ['Insufferable all week.', 'Nobody wants to hear about it.', 'Enjoy the money and the ego.', 'Will not shut up about this.', 'Somebody\'s buying the first round.', 'Peaked. It\'s all downhill now.', 'Screenshotted it already, didn\'t you.', 'Fine. You were good. Once.', 'The group chat has been warned.', 'Take the money and the smugness.'],
+      loser: ['Coin flips would\'ve done better.', 'Rough. Truly rough.', 'The basement has your name on it.', 'Might be time to retire.', 'A blindfold would\'ve helped.', 'Thoughts and prayers.', 'Historically bad. Impressive, honestly.', 'The dog could\'ve picked better.', 'Somebody check on them.', 'A week to forget. Nobody else will.'],
+      top: ['Top of the pile. Enjoy it.', 'King of the week. Act accordingly.', 'Up top. Don\'t get comfortable.', 'Best in the room. Say it loud.', 'Nobody touched you this week.', 'Tied or not, you\'re up there. Gloat.'],
+      bottom: ['Rock bottom. Nowhere to go but up.', 'Dead last. At least it\'s memorable.', 'The basement is cozy, right?', 'Last place. The league salutes your sacrifice.', 'Someone had to be last. Thanks for volunteering.', 'You held the floor for everyone else.'],
+      done: ['This week is in the books. Scroll down and relive your mistakes.', 'Week\'s final. Damage is done.', 'All in. Scroll down and face it.', 'Final. Some of you should be embarrassed.'],
+      allStarted: ['Every game has kicked off. Picks are locked — whatever you had is what you\'ve got.', 'Everything\'s underway. Live with your choices.', 'All kicked off. No takebacks.'],
+      rivalOpen: ['Most correct picks this week wins the matchup. New rival every week, record on the standings.', 'Beat them this week and never let them forget it. New rival weekly.', 'Head-to-head, most correct picks wins. Bragging rights carry to the standings.', 'One week, one rival, most right picks takes it. Make it hurt.'],
+      rivalWin: s => [`You took it, ${s}. Rub it in.`, `${s}. Send them a text about it.`, `Handled, ${s}. They'll be fine. Probably.`, `${s}. Bragging rights: yours.`, `Won ${s}. Merciless.`],
+      rivalLoss: s => [`Lost, ${s}. Ouch.`, `${s}. They'll be bringing this up all week.`, `Dropped it, ${s}. Rough scene.`, `${s}. Delete the group chat.`, `Lost ${s}. Rematch is a whole season away.`],
+      rivalPush: s => [`Pushed, ${s}. Nobody wins.`, `${s}. A tie. Thrilling.`, `Dead even, ${s}. Kissing your sibling.`, `${s}. Neither of you can talk.`],
+      bye: ['Bye week. Nobody wants a piece of you.', 'Bye week. Rest up, tough guy.', 'No rival this week. Enjoy the silence.', 'Bye. Even the schedule is scared.'],
+      declined: t => [`${t} chickened out`, `${t} ran`, `${t} said no thanks`, `${t} kept the wallet closed`, `${t} folded`],
+      accepted: ['Accepted. It\'s on.', 'Money\'s on the table.', 'Both in. No backing out now.', 'Locked. Somebody\'s paying up.'],
+      acceptToast: f => [`It's on with ${f}.`, `Deal. ${f} is going down.`, `Accepted. ${f} just made a mistake.`, `Game on with ${f}.`],
+      declineToast: ['Declined. Coward.', 'Declined. Bold of you to admit it.', 'Passed. The league noticed.', 'Declined. Your wallet thanks you.'],
+      calledOut: t => [`${t} has been called out. Now go win.`, `${t} is on notice.`, `Shots fired at ${t}.`, `Callout sent. ${t} has to answer now.`, `${t} is on the clock.`],
+      startHint: ['Tap the team you think wins. Straight up, no spreads, no excuses. Each game locks at its kickoff.', 'Winners only, no spreads. Games lock at kickoff. Don\'t overthink it — you will anyway.', 'Pick the winner of each game. Locks at kickoff. Your gut is probably wrong, but go with it.']
+    };
     const games = week.games.map(g => {
       const win = winner(g), locked = g.as != null, mine = this.pickFor(me, g, locked);
       // consensus: who the league took, shown once the game has kicked off (picks stay hidden before that)
@@ -730,10 +757,10 @@ class Component extends DCLogic {
       let resultText = '', resultColor = 'var(--color-neutral-600)', verdict = '', edge = 'transparent', cardBg = 'transparent';
       const GREEN = '#1f7a3a', RED = '#b42318', GREY = 'var(--color-neutral-500)';
       if (locked) {
-        if (!mine) { verdict = 'NO PICK'; edge = GREY; resultText = T('That\'s a free loss, champ.', 'No pick made'); }
-        else if (mine === win) { verdict = 'HIT'; edge = GREEN; resultColor = GREEN; cardBg = 'rgba(31,122,58,.05)'; resultText = T('Nailed it.', 'Correct'); }
-        else { verdict = 'MISS'; edge = RED; resultColor = RED; cardBg = 'rgba(180,35,24,.05)'; resultText = T(`You had ${mine}. Swing and a miss.`, `You had ${mine}.`); }
-      } else resultText = mine ? `You've got ${mine}` : T('Pick one. Any one. Just pick.', 'Tap a team to pick');
+        if (!mine) { verdict = 'NO PICK'; edge = GREY; resultText = T(pick(g.id + 'np', TT.noPick), 'No pick made'); }
+        else if (mine === win) { verdict = 'HIT'; edge = GREEN; resultColor = GREEN; cardBg = 'rgba(31,122,58,.05)'; resultText = T(pick(g.id + 'hit', TT.hit), 'Correct'); }
+        else { verdict = 'MISS'; edge = RED; resultColor = RED; cardBg = 'rgba(180,35,24,.05)'; resultText = T(pick(g.id + 'miss', TT.miss(mine)), `You had ${mine}.`); }
+      } else resultText = mine ? `You've got ${mine}` : T(pick(g.id + 'open', TT.open), 'Tap a team to pick');
       // final-game visuals: your pick keeps its team color; the winner gets a green outline + chip; the loser fades
       const side = t => { const isWin = locked && win === t, isMine = mine === t, isLoser = locked && win && win !== t;
         return { op: isLoser ? '.45' : '1', outline: isWin ? `3px solid ${GREEN}` : 'none', deco: isLoser ? 'line-through' : 'none',
@@ -741,7 +768,7 @@ class Component extends DCLogic {
       const sa = side(g.away), sh = side(g.home);
       const ln = g.spread === '' || g.spread == null ? null : Number(g.spread), fmt = v => v === 0 ? 'PK' : (v > 0 ? '+' + v : String(v));
       const live = !locked && started(g);
-      if (live) resultText = mine ? `Locked in with ${mine}` : T('Too late. Kickoff came and went.', 'Locked — no pick made.');
+      if (live) resultText = mine ? `Locked in with ${mine}` : T(pick(g.id + 'late', TT.late), 'Locked — no pick made.');
       const msLeft = g.kick && !locked && !live ? new Date(g.kick).getTime() - now : null;
       return { ...g, awayLine: ln == null ? '' : fmt(-ln), homeLine: ln == null ? '' : fmt(ln), locked, pe: locked || live ? 'none' : 'auto', mid: locked ? 'FINAL' : live ? '🔒 LIVE' : 'at', when: g.when,
         countdown: msLeft == null ? (locked ? '' : live ? 'locked' : '') : (msLeft < 3600e3 ? T('locks in ' + fmtLeft(msLeft) + '!', 'locks in ' + fmtLeft(msLeft)) : 'locks in ' + fmtLeft(msLeft)), midColor: live || locked ? 'var(--color-neutral-600)' : (msLeft != null && msLeft < 3600e3 ? '#b42318' : 'var(--color-text)'),
@@ -784,20 +811,21 @@ class Component extends DCLogic {
     const myRival = me ? rivalOf(me, week.n) : null, firstKick = week.games.filter(g => g.kick).map(g => new Date(g.kick).getTime()).sort((a, b) => a - b)[0];
     const weekStarted = week.games.some(g => started(g) || g.as != null), calloutsOpen = total > 0 && !weekStarted && !!me;
     const scoreLine = (a, b) => weekStarted || weekFinal ? `${a} ${wins(a, week)} – ${wins(b, week)} ${b}` : '';
-    const rivalTitle = !myRival ? (players.length < 2 ? 'Need two players for rivalries' : T('Bye week. Nobody wants a piece of you.', 'You have a bye this week.')) : T(`Your rival: ${myRival}`, `This week's rival: ${myRival}`);
+    const rivalTitle = !myRival ? (players.length < 2 ? 'Need two players for rivalries' : T(pick('bye' + week.n, TT.bye), 'You have a bye this week.')) : T(`Your rival: ${myRival}`, `This week's rival: ${myRival}`);
     let rivalLine = '';
     if (myRival) { const o = weekFinal ? h2h(me, myRival, week) : null;
-      rivalLine = weekFinal ? (o === 'W' ? T(`You took it, ${scoreLine(me, myRival)}. Rub it in.`, `Won, ${scoreLine(me, myRival)}.`) : o === 'L' ? T(`Lost, ${scoreLine(me, myRival)}. Ouch.`, `Lost, ${scoreLine(me, myRival)}.`) : T(`Pushed, ${scoreLine(me, myRival)}. Nobody wins.`, `Tied, ${scoreLine(me, myRival)}.`))
-        : weekStarted ? `Live: ${scoreLine(me, myRival)}` : T('Most correct picks this week wins the matchup. New rival every week, record on the standings.', 'Most correct picks this week wins. New rival every week; record shown on the standings.'); }
+      const sl = scoreLine(me, myRival), rs = 'riv' + week.n;
+      rivalLine = weekFinal ? (o === 'W' ? T(pick(rs, TT.rivalWin(sl)), `Won, ${sl}.`) : o === 'L' ? T(pick(rs, TT.rivalLoss(sl)), `Lost, ${sl}.`) : T(pick(rs, TT.rivalPush(sl)), `Tied, ${sl}.`))
+        : weekStarted ? `Live: ${sl}` : T(pick(rs, TT.rivalOpen), 'Most correct picks this week wins. New rival every week; record shown on the standings.'); }
     const chFor = (a, b) => allCh.find(c => Number(c.week) === week.n && ((c.from === a && c.to === b) || (c.from === b && c.to === a)) && (c.status === 'pending' || c.status === 'accepted'));
     const opponents = players.filter(p => p !== me && !chFor(me, p));
     const chTo = opponents.includes(this.state.chTo) ? this.state.chTo : (opponents[0] || ''), chAmt = this.state.chAmt;
     const callouts = allCh.filter(c => Number(c.week) === week.n).sort((a, b) => String(b.created || '').localeCompare(String(a.created || ''))).map(c => {
       const amt = money(c.amount), o = weekFinal && c.status === 'accepted' ? h2h(c.from, c.to, week) : null;
-      const status = c.status === 'pending' ? T('waiting on ' + c.to, 'pending') : c.status === 'declined' ? T(`${c.to} chickened out`, 'declined') : c.status === 'withdrawn' ? 'withdrawn' : o ? (o === 'T' ? 'push' : `${o === 'W' ? c.from : c.to} wins ${amt}`) : weekStarted ? 'live' : 'on';
-      return { id: c.id, text: T(`${c.from} called out ${c.to} · ${amt}`, `${c.from} vs ${c.to} · ${amt}`), sub: c.status === 'accepted' ? (scoreLine(c.from, c.to) || T('Accepted. It\'s on.', 'Accepted.')) : '', status, cls: c.status === 'accepted' ? 'tag-accent' : c.status === 'pending' ? 'tag-outline' : 'tag-neutral',
+      const status = c.status === 'pending' ? T('waiting on ' + c.to, 'pending') : c.status === 'declined' ? T(pick(c.id + 'd', TT.declined(c.to)), 'declined') : c.status === 'withdrawn' ? 'withdrawn' : o ? (o === 'T' ? 'push' : `${o === 'W' ? c.from : c.to} wins ${amt}`) : weekStarted ? 'live' : 'on';
+      return { id: c.id, text: T(`${c.from} called out ${c.to} · ${amt}`, `${c.from} vs ${c.to} · ${amt}`), sub: c.status === 'accepted' ? (scoreLine(c.from, c.to) || T(pick(c.id + 'a', TT.accepted), 'Accepted.')) : '', status, cls: c.status === 'accepted' ? 'tag-accent' : c.status === 'pending' ? 'tag-outline' : 'tag-neutral',
         canRespond: c.status === 'pending' && c.to === me && calloutsOpen, canWithdraw: c.status === 'pending' && c.from === me && calloutsOpen,
-        accept: () => this.respond(c.id, 'accepted', T(`It's on with ${c.from}.`, 'Challenge accepted.')), decline: () => this.respond(c.id, 'declined', T('Declined. Coward.', 'Challenge declined.')), withdraw: () => this.respond(c.id, 'withdrawn', 'Callout withdrawn') };
+        accept: () => this.respond(c.id, 'accepted', T(pick(c.id + 'at', TT.acceptToast(c.from)), 'Challenge accepted.')), decline: () => this.respond(c.id, 'declined', T(pick(c.id + 'dt', TT.declineToast), 'Challenge declined.')), withdraw: () => this.respond(c.id, 'withdrawn', 'Callout withdrawn') };
     });
     const kickLabel = firstKick ? new Date(firstKick).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'kickoff';
     const calloutHint = !total ? '' : weekStarted ? T('Callouts closed at the first kickoff. Settle Venmo-to-Venmo — the league doesn\'t hold side money.', 'Callouts closed at the first kickoff. Side bets are settled between players.')
@@ -830,9 +858,9 @@ class Component extends DCLogic {
       const tbNote = tiedTop > 1 && ws.length === 1 ? ` Won on the tiebreaker${tbTotal != null && tbGuess !== '' && tbGuess != null ? ` — guessed ${tbGuess}, actual ${tbTotal}` : ''}.` : tiedTop > 1 && ws.length > 1 ? T(' Split — tiebreaker didn\'t settle it.', ' Tied; prize split.') : '';
       pastVals = { hasPast: true, noPast: false, pastWeekNum: pw.n,
         finalWeeks: settled.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
-        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize / Math.max(1, ws.length))}.${tbNote || ' ' + T('Insufferable all week.', 'Best record this week.')}`,
-        pastLoser: worst.p, pastLoserLine: `${worst.r[0]}-${worst.r[1]}. ${T('Coin flips would\'ve done better.', 'Worst record this week.')}`,
-        pastMyRecord: `${myR[0]}-${myR[1]}`, pastMyLine: myR[0] === best.r[0] ? T('Top of the pile. Enjoy it.', 'Tied for the top.') : myR[0] === worst.r[0] ? T('Rock bottom. Nowhere to go but up.', 'Bottom of the week.') : `${best.r[0] - myR[0]} ${T('back of the big dog', 'behind the leader')}`,
+        pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize / Math.max(1, ws.length))}.${tbNote || ' ' + T(pick('win' + pw.n, TT.winner), 'Best record this week.')}`,
+        pastLoser: worst.p, pastLoserLine: `${worst.r[0]}-${worst.r[1]}. ${T(pick('lose' + pw.n, TT.loser), 'Worst record this week.')}`,
+        pastMyRecord: `${myR[0]}-${myR[1]}`, pastMyLine: myR[0] === best.r[0] ? T(pick('top' + pw.n, TT.top), 'Tied for the top.') : myR[0] === worst.r[0] ? T(pick('bot' + pw.n, TT.bottom), 'Bottom of the week.') : `${best.r[0] - myR[0]} ${T('back of the big dog', 'behind the leader')}`,
         pastGames: pw.games.map(g => { const win = winner(g), mine = this.pickFor(me, g, true); const pct = Math.round(players.filter(p => this.pickFor(p, g, true) === win).length / players.length * 100);
           return { away: g.away, home: g.home, score: `${g.as}-${g.hs}`, winner: win, mine: mine === win ? `${mine} ✓` : `${mine} ✗`, color: mine === win ? 'var(--color-accent-700)' : 'var(--color-neutral-500)', pool: pct + '%' }; }) };
     }
@@ -856,12 +884,12 @@ class Component extends DCLogic {
       rivalTitle, rivalLine, callouts, hasCallouts: callouts.length > 0, calloutHint, canChallenge: calloutsOpen && opponents.length > 0, opponents, chTo, chAmt,
       setChTo: e => this.setState({ chTo: e.target.value }), setChAmt: e => this.setState({ chAmt: e.target.value }),
       sendChallenge: () => { const amt = Number(chAmt); if (!chTo || !(amt > 0)) { this.showToast('Pick a player and an amount.'); return; }
-        this.challenge({ id: 'c' + Date.now().toString(36), pool, week: week.n, from: me, to: chTo, amount: amt, status: 'pending', created: new Date().toISOString() }, T(`${chTo} has been called out for ${money(amt)}.`, `Challenge sent to ${chTo}.`)); },
+        this.challenge({ id: 'c' + Date.now().toString(36), pool, week: week.n, from: me, to: chTo, amount: amt, status: 'pending', created: new Date().toISOString() }, T(pick(chTo + Date.now(), TT.calledOut(chTo)), `Challenge sent to ${chTo}.`)); },
       weekNum: week.n, prevWeek: () => this.setState({ week: wi - 1 }), nextWeek: () => this.setState({ week: wi + 1 }), noPrev: wi === 0, noNext: wi === weeks.length - 1,
       games, weekOpen: !weekClosed, weekLocked: weekClosed,
       countdownText, countdownColor, lockIconDisplay: allStarted || weekFinal ? 'none' : 'inline-block',
       progressText: weekFinal ? `You went ${myW}-${myL}` : `${made} of ${total} picked`, progressPct: weekFinal ? 100 : (total ? Math.round(made / total * 100) : 0),
-      picksHint: weekFinal ? T('This week is in the books. Scroll down and relive your mistakes.', 'This week is final.') : allStarted ? T('Every game has kicked off. Picks are locked — whatever you had is what you\'ve got.', 'All games have started. Picks are locked.') : T('Tap the team you think wins. Straight up, no spreads, no excuses. Each game locks at its kickoff.', 'Tap the team you think will win. Picks lock at each kickoff.'),
+      picksHint: weekFinal ? T(pick('done' + week.n, TT.done), 'This week is final.') : allStarted ? T(pick('as' + week.n, TT.allStarted), 'All games have started. Picks are locked.') : T(pick('hint' + week.n, TT.startHint), 'Tap the team you think will win. Picks lock at each kickoff.'),
       showTiebreak, tiebreakGame: lastG ? `${lastG.away} at ${lastG.home}` : '—', tiebreak: tb[key] ?? '',
       setTiebreak: e => this.setState(s => ({ tb: { ...s.tb, [key]: e.target.value }, dirty: true })),
       saveHint: made < total ? T(`${total - made} still blank. The games won't wait for you.`, `${total - made} game${total - made === 1 ? '' : 's'} left to pick.`) : dirty ? T('All picked. Now commit.', 'All games picked. Save to lock in.') : T('Saved. Go talk some trash.', 'Your picks are saved.'),
