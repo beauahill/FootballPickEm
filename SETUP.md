@@ -55,4 +55,5 @@ Everyone registers once with their name, email and a 4+ digit PIN; after that th
 ## Troubleshooting
 - **testEspn says "HTTP 403":** ESPN blocks requests coming from Google's servers. The Admin **Import** and **Pull scores** buttons don't depend on this — they fetch ESPN from your own browser, then save to the sheet. The hourly auto-pull tries a public relay; if that's blocked too, just hit **Pull final scores now** on Monday.
 - **Admin PIN rejected:** the PIN is the `adminPin` row in the sheet's Settings tab, not the one in the page's Tweaks.
+- **"You do not have permission" when emailing results / everyone:** add a row `adminEmail` = your email in the Settings tab (the group emails go To you, BCC the players). Or re-run **setup** in the editor and approve the new permission.
 - **Old behaviour after changing Code.gs:** you didn't deploy a new version (see above).

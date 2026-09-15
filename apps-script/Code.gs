@@ -25,7 +25,7 @@ function setup() {
 // reserved for weekly winners (split evenly across the season's weeks), weeks per pool, and the season split.
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 // Text settings: accessCode gates registration (blank = open); venmo is the commissioner's handle shown on the Payments tab.
-const TEXT_SETTINGS = { accessCode: '', venmo: '', leagueName: '', leagueUrl: '' };
+const TEXT_SETTINGS = { accessCode: '', venmo: '', leagueName: '', leagueUrl: '', adminEmail: '' };
 const split_ = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 // Run once after pasting new code: makes Google ask for permission to reach ESPN, and prints how many games it sees.
 function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachable — ' + n + ' NFL week 1 games'); return n; }
@@ -69,6 +69,9 @@ function append_(n, row) { sheet_(n).appendRow(row); delete _rows[n]; }
 function writeAll_(n, objs) { const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); delete _rows[n]; }
 function setting_(k) { const r = rows_('Settings').find(x => x.key === k); return r ? String(r.value) : ''; }
 function setSetting_(k, v) { const all = rows_('Settings'); const r = all.find(x => x.key === k); if (r) r.value = v; else all.push({ key: k, value: v }); writeAll_('Settings', all); }
+// The commissioner's address for the To line on BCC blasts. Set 'adminEmail' in Settings; Session.* is a fallback
+// (it needs a permission scope Google only grants after re-running a function in the editor).
+function me_() { const e = setting_('adminEmail'); if (e) return String(e).trim(); try { return Session.getEffectiveUser().getEmail(); } catch (x) { throw new Error('Add an adminEmail row to the Settings tab (your email) so results can be sent'); } }
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
 function doGet(e) { try { const a = (e.parameter || {}).action; if (a === 'state') return out_({ ok: true, ...state_() }); return out_({ ok: true, service: 'pickem' }); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
@@ -110,7 +113,8 @@ function handle_(b) {
   const norm = v => String(v || '').trim().toLowerCase();
   const findName = n => players.find(p => norm(p.name) === norm(n));
   const findEmail = e => players.find(p => norm(p.email) === norm(e));
-  const auth = () => { const p = findEmail(b.email); if (!p || String(p.pin) !== String(b.pin)) throw new Error('Wrong email or PIN'); return p; };
+  const pin = v => String(v == null ? '' : v).trim().replace(/\.0+$/, '').replace(/^0+(?=\d)/, '');
+  const auth = () => { const p = findEmail(b.email); if (!p) throw new Error('Wrong email or PIN'); if (pin(p.pin) !== pin(b.pin)) throw new Error('Wrong email or PIN — sign out and back in if your PIN changed'); return p; };
   switch (b.action) {
     case 'register': {
       const name = String(b.name || '').trim(), email = norm(b.email);
@@ -274,7 +278,7 @@ function sendResults_(pool, weekN) {
   if (ch.length) { L.push('', 'CALLOUTS'); ch.forEach(c => { const a = by[String(c.from)], b = by[String(c.to)]; L.push('  ' + c.from + ' ' + a.ww + ' – ' + b.ww + ' ' + c.to + ': ' + (a.ww > b.ww ? c.from + ' wins $' + c.amount : a.ww < b.ww ? c.to + ' wins $' + c.amount : 'push')); }); }
   L.push('', 'Full results and next week\'s games: ' + url, '', '— ' + name);
   const emails = players.map(p => String(p.email || '').trim()).filter(Boolean);
-  if (emails.length) MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), bcc: emails.join(','), subject: name + ': ' + label + ' Week ' + weekN + ' results — ' + wins.map(r => r.n).join(' & ') + ' take' + (wins.length > 1 ? '' : 's') + ' it', body: L.join('\n') });
+  if (emails.length) MailApp.sendEmail({ to: me_(), bcc: emails.join(','), subject: name + ': ' + label + ' Week ' + weekN + ' results — ' + wins.map(r => r.n).join(' & ') + ' take' + (wins.length > 1 ? '' : 's') + ' it', body: L.join('\n') });
   setSetting_('resultsSent_' + pool + '_' + weekN, new Date().toISOString());
   return emails.length;
 }
@@ -285,7 +289,7 @@ function notify_(to, subject, message) {
   if (!list.length) throw new Error('No email on file for that player');
   if (!String(subject || '').trim() || !String(message || '').trim()) throw new Error('Need a subject and a message');
   const body = String(message).trim() + '\n\n— ' + name;
-  if (to === 'all') MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), bcc: list.join(','), subject: name + ': ' + subject.trim(), body });
+  if (to === 'all') MailApp.sendEmail({ to: me_(), bcc: list.join(','), subject: name + ': ' + subject.trim(), body });
   else MailApp.sendEmail({ to: list[0], subject: name + ': ' + subject.trim(), body });
   return list.length;
 }
