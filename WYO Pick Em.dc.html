@@ -32,7 +32,7 @@
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:12px">
         <div><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Picking as</div><div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1">{{ me }}</div></div>
-        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
+        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ startRename }}" style="min-height:44px;font-size:15px">Change name</button><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
       </div>
     </sc-if>
     <sc-if value="{{ adminPicker }}" hint-placeholder-val="{{ false }}">
@@ -44,6 +44,13 @@
     </label>
     </sc-if>
   </header>
+  <sc-if value="{{ renaming }}" hint-placeholder-val="{{ false }}">
+    <form onSubmit="{{ submitRename }}" class="blueprint" style="position:relative;display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:12px;padding:16px;margin:-8px 0 20px;border:1px solid var(--color-neutral-300)"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <label style="display:flex;flex-direction:column;gap:4px;flex:1 1 220px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">New name</span><input class="input" value="{{ renameVal }}" onChange="{{ setRenameVal }}" placeholder="Shown on the leaderboard" style="min-height:44px;font-size:16px"></label>
+      <button type="submit" class="btn btn-primary" disabled="{{ renameDisabled }}" style="min-height:44px;font-size:16px">{{ renameLabel }}</button>
+      <button type="button" class="btn btn-ghost" onClick="{{ cancelRename }}" style="min-height:44px;font-size:16px">Cancel</button>
+    </form>
+  </sc-if>
 
   <sc-if value="{{ needsAuth }}" hint-placeholder-val="{{ false }}">
     <form onSubmit="{{ authSubmit }}" class="blueprint" data-screen-label="Sign in" style="max-width:440px;margin:24px auto;padding:24px;display:flex;flex-direction:column;gap:14px">
@@ -571,7 +578,7 @@ class Component extends DCLogic {
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
     this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: false }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
-      session, loading: false, authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
+      session, loading: false, renaming: false, renameVal: '', authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
   componentDidMount() { if (this.sync) this.load(); this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 30000); }
@@ -819,7 +826,8 @@ class Component extends DCLogic {
     if (pw) {
       const recs = players.map(p => ({ p, r: this.record(p, pw) })).sort((a, b) => b.r[0] - a.r[0]);
       const ws = weekWinners(pw), best = ws.length ? { p: ws.join(' & '), r: recs.find(x => x.p === ws[0]).r } : (recs[0] || { p: '—', r: [0, 0] }), worst = recs[recs.length - 1] || best, meRec = recs.find(x => x.p === me), myR = meRec ? meRec.r : [0, 0];
-      const tiedTop = recs.filter(x => x.r[0] === best.r[0]).length, tbNote = tiedTop > 1 && ws.length === 1 ? T(' Won the tiebreaker.', ' Won on the tiebreaker.') : tiedTop > 1 && ws.length > 1 ? T(' Split — tiebreaker didn\'t settle it.', ' Tied; prize split.') : '';
+      const tiedTop = recs.filter(x => x.r[0] === best.r[0]).length, tbLg = pw.games[pw.games.length - 1], tbTotal = tbLg && scored(tbLg) ? Number(tbLg.as) + Number(tbLg.hs) : null, tbGuess = ws.length === 1 ? this.tbFor(ws[0], `${pool}-${pw.n}`) : '';
+      const tbNote = tiedTop > 1 && ws.length === 1 ? ` Won on the tiebreaker${tbTotal != null && tbGuess !== '' && tbGuess != null ? ` — guessed ${tbGuess}, actual ${tbTotal}` : ''}.` : tiedTop > 1 && ws.length > 1 ? T(' Split — tiebreaker didn\'t settle it.', ' Tied; prize split.') : '';
       pastVals = { hasPast: true, noPast: false, pastWeekNum: pw.n,
         finalWeeks: settled.map(w => ({ n: w.n, cls: cls(w.n === pw.n), select: () => this.setState({ pastWeek: w.n }) })),
         pastWinner: best.p, pastWinnerLine: `${best.r[0]}-${best.r[1]} · wins ${money(weeklyPrize / Math.max(1, ws.length))}.${tbNote || ' ' + T('Insufferable all week.', 'Best record this week.')}`,
@@ -915,6 +923,11 @@ class Component extends DCLogic {
         this.setState({ busy: 'auth' }); const pools = ['nfl'];
         this.api({ action: authMode, name, email, pin: authPin, pools, code: authCode.trim() }).then(j => { this.setState({ busy: '' }); this.setSession({ name: j.name, email: j.email || email, pin: authPin }); }).catch(err => this.setState({ busy: '', authError: err.message })); },
       signOut: () => this.setSession(null),
+      renaming: this.state.renaming, renameVal: this.state.renameVal, setRenameVal: e => this.setState({ renameVal: e.target.value }),
+      startRename: () => this.setState({ renaming: true, renameVal: session ? session.name : '' }), cancelRename: () => this.setState({ renaming: false }),
+      renameDisabled: !!busy || this.state.renameVal.trim().length < 2, renameLabel: busy === 'rename' ? 'Saving…' : 'Save name',
+      submitRename: e => { e.preventDefault(); const name = this.state.renameVal.trim(); if (!session || name.length < 2) return; this.setState({ busy: 'rename' });
+        this.api({ action: 'rename', email: session.email, pin: session.pin, name }).then(j => { const ns = { ...session, name: j.name }; try { localStorage.setItem('pickem.session', JSON.stringify(ns)); } catch (x) {} this.setState({ session: ns, me: j.name, renaming: false }, () => this.applyState(j, { busy: '' })); this.showToast('You\'re now ' + j.name); }).catch(err => { this.setState({ busy: '' }); this.showToast(err.message); }); },
       lockAdmin: () => this.setState({ adminOk: false }),
       adminGames, weekStatus: weekFinal ? 'All scores in — this week counts in standings.' : week.games.length ? 'Leave scores blank until the game is over. The week counts once every score is in.' : 'No games yet. Add one below.',
       addGame: () => this.mutate(d => { d[pool].weeks[wi].games.push({ id: pool + week.n + '-' + Date.now().toString(36), away: '', home: '', when: 'Sun 12:00 PM', spread: null, as: null, hs: null }); }),

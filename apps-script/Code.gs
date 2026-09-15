@@ -130,6 +130,17 @@ function handle_(b) {
       return { ok: true, name, email };
     }
     case 'login': { const p = auth(); return { ok: true, name: String(p.name), email: String(p.email) }; }
+    // Rename: names key Picks/Tiebreaks/Reminders/Challenges, so every tab is rewritten with the new name.
+    case 'rename': {
+      const p = auth(), old = String(p.name), name = String(b.name || '').trim();
+      if (name.length < 2) throw new Error('Name too short');
+      if (norm(name) === norm(old)) return { ok: true, name: old, ...state_() };
+      if (findName(name)) throw new Error('That name is taken — add a last initial');
+      p.name = name; writeAll_('Players', players);
+      const fix = (tab, keys) => { const all = rows_(tab); let hit = false; all.forEach(r => keys.forEach(k => { if (String(r[k]) === old) { r[k] = name; hit = true; } })); if (hit) writeAll_(tab, all); };
+      fix('Picks', ['player']); fix('Tiebreaks', ['player']); fix('Reminders', ['player']); fix('Challenges', ['from', 'to']);
+      return { ok: true, name, ...state_() };
+    }
     case 'savePicks': {
       const p = auth(), me = String(p.name);
       {
@@ -262,14 +273,19 @@ function sendResults_(pool, weekN) {
   let wins = weekRows.filter(r => r.ww === best);
   // tie → closest guess at total points in the week's last game
   const lg = w.games[w.games.length - 1], totalPts = lg && lg.as != null && lg.hs != null ? lg.as + lg.hs : null;
-  if (wins.length > 1 && totalPts != null) { const tbs = {}; rows_('Tiebreaks').forEach(t => tbs[t.player + '|' + t.key] = t.value); const guess = r => { const v = tbs[r.n + '|' + pool + '-' + weekN]; return v === '' || v == null || isNaN(Number(v)) ? Infinity : Math.abs(Number(v) - totalPts); }; const bd = Math.min.apply(null, wins.map(guess)); if (bd !== Infinity) wins = wins.filter(r => guess(r) === bd); }
+  const tied = wins.length, tbs = {}; rows_('Tiebreaks').forEach(t => tbs[t.player + '|' + t.key] = t.value);
+  const tbVal = r => { const v = tbs[r.n + '|' + pool + '-' + weekN]; return v === '' || v == null || isNaN(Number(v)) ? null : Number(v); };
+  if (wins.length > 1 && totalPts != null) { const guess = r => { const v = tbVal(r); return v == null ? Infinity : Math.abs(v - totalPts); }; const bd = Math.min.apply(null, wins.map(guess)); if (bd !== Infinity) wins = wins.filter(r => guess(r) === bd); }
+  const tbWon = tied > 1 && wins.length === 1, tbSplit = tied > 1 && wins.length > 1;
   const names = rows.map(r => r.n).sort((a, b) => a.localeCompare(b));
   const rivalOf = (p, n) => { const arr = names.slice(); if (arr.length % 2) arr.push(null); const m = arr.length; if (m < 2) return null; const r = (n - 1) % (m - 1), rest = arr.slice(1), rot = rest.slice(rest.length - r).concat(rest.slice(0, rest.length - r)), line = [arr[0]].concat(rot), i = line.indexOf(p); return i < 0 ? null : line[m - 1 - i]; };
   const label = pool === 'nfl' ? 'NFL' : 'College', name = setting_('leagueName') || LEAGUE_NAME, url = setting_('leagueUrl') || LEAGUE_URL;
   const L = [label + ' Week ' + weekN + ' is in the books.', ''];
   L.push('WEEK WINNER' + (wins.length > 1 ? 'S (tie)' : '') + ': ' + wins.map(r => r.n + ' (' + r.ww + '-' + r.wl + ')').join(', '));
+  if (tbWon) { const g = tbVal(wins[0]); L.push('  Won on the tiebreaker — ' + tied + ' tied at ' + best + ' correct. Total points in ' + lg.away + ' at ' + lg.home + ': ' + totalPts + (g != null ? '. ' + wins[0].n + ' guessed ' + g + '.' : '.')); }
+  else if (tbSplit) L.push('  ' + tied + ' tied at ' + best + ' correct and the tiebreaker didn\'t settle it — prize split.');
   L.push('BASEMENT: ' + worst.n + ' (' + worst.ww + '-' + worst.wl + ')');
-  L.push('', 'THIS WEEK'); weekRows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.ww + '-' + r.wl));
+  L.push('', 'THIS WEEK'); weekRows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.ww + '-' + r.wl + (tbWon && r.n === wins[0].n ? '  (tiebreaker)' : '')));
   L.push('', 'SEASON'); rows.forEach((r, i) => L.push('  ' + (i + 1) + '. ' + r.n + '  ' + r.sw + '-' + r.sl + (i ? '  (' + (rows[0].sw - r.sw) + ' back)' : '')));
   const seen = new Set(), riv = [];
   names.forEach(n => { const r = rivalOf(n, weekN); if (!r || seen.has(n)) return; seen.add(n); seen.add(r); riv.push('  ' + n + ' ' + by[n].ww + ' – ' + by[r].ww + ' ' + r + (by[n].ww === by[r].ww ? '  (push)' : '')); });
