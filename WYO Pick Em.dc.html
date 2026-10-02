@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="muqg8oa9" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v muqg8oa9</div>
+<div data-build="muqgmr3n" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v muqgmr3n</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -31,7 +31,7 @@
     </div>
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:12px">
-        <span style="flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ meAvBg }};font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-800)">{{ meInitials }}</span>
+        <span style="flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-800)background-position:center;background-size:cover;background-image:{{ meAvBg }}">{{ meInitials }}</span>
         <div><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Picking as</div><div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1">{{ me }}</div></div>
         <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><label class="btn btn-ghost" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;cursor:pointer">{{ photoLabel }}<input type="file" accept="image/*" onChange="{{ uploadPhoto }}" style="display:none"></label><sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ removePhoto }}" style="min-height:44px;font-size:15px">Remove photo</button></sc-if><button class="btn btn-ghost" onClick="{{ startRename }}" style="min-height:44px;font-size:15px">Change name</button><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
       </div>
@@ -258,7 +258,7 @@
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
               <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
                 <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 6px">{{ r.rank }}</td>
-                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere"><div style="display:flex;align-items:center;gap:10px"><span style="flex:none;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ r.avBg }};font-family:var(--font-heading);font-weight:600;font-size:13px;color:var(--color-accent-800)">{{ r.initials }}</span><span>{{ r.name }}</span><span class="tag tag-accent" style="display:{{ r.tagDisplay }}">{{ r.tag }}</span></div></td>
+                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere"><div style="display:flex;align-items:center;gap:10px"><span style="flex:none;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);font-family:var(--font-heading);font-weight:600;font-size:13px;color:var(--color-accent-800)background-position:center;background-size:cover;background-image:{{ r.avBg }}">{{ r.initials }}</span><span>{{ r.name }}</span><span class="tag tag-accent" style="display:{{ r.tagDisplay }}">{{ r.tag }}</span></div></td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap">{{ r.week }}</td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:var(--color-neutral-600)">{{ r.back }}</td>
@@ -281,7 +281,7 @@
         <sc-if value="{{ chartReady }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
             <sc-for list="{{ chartChips }}" as="c" hint-placeholder-count="8">
-              <button class="btn {{ c.cls }}" onClick="{{ c.pick }}" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;gap:8px;padding-left:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ c.avBg }};font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)">{{ c.initials }}</span>{{ c.name }}</button>
+              <button class="btn {{ c.cls }}" onClick="{{ c.pick }}" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;gap:8px;padding-left:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)background-position:center;background-size:cover;background-image:{{ c.avBg }}">{{ c.initials }}</span>{{ c.name }}</button>
             </sc-for>
           </div>
         </sc-if>
@@ -400,7 +400,7 @@
               <tbody>
                 <sc-for list="{{ grid.rows }}" as="r" hint-placeholder-count="8">
                   <tr style="background:{{ r.bg }}">
-                    <td style="position:sticky;left:0;z-index:1;background:var(--color-bg);padding:8px 7px;font-weight:{{ r.weight }};white-space:nowrap"><div style="display:flex;align-items:center;gap:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ r.avBg }};font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)">{{ r.initials }}</span><span>{{ r.name }}</span></div></td>
+                    <td style="position:sticky;left:0;z-index:1;background:var(--color-bg);padding:8px 7px;font-weight:{{ r.weight }};white-space:nowrap"><div style="display:flex;align-items:center;gap:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)background-position:center;background-size:cover;background-image:{{ r.avBg }}">{{ r.initials }}</span><span>{{ r.name }}</span></div></td>
                     <td style="padding:8px 7px;text-align:center;font-family:var(--font-heading);font-weight:600;font-size:17px;white-space:nowrap">{{ r.rec }}</td>
                     <sc-for list="{{ r.cells }}" as="x" hint-placeholder-count="8"><td style="padding:8px 6px;text-align:center;font-size:13px;white-space:nowrap;background:{{ x.bg }};color:{{ x.color }};font-weight:{{ x.weight }}">{{ x.text }}</td></sc-for>
                     <td style="padding:8px 7px;text-align:center;color:var(--color-neutral-700)">{{ r.tb }}</td>
@@ -606,9 +606,12 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.wyo.v1', BUILD = 'muqg8oa9', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'muqgmr3n', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
+// Data URLs contain ';' which the inline-style parser splits on — expose photos as cached blob: URLs instead.
+const _blobs = {};
+const blobOf = d => { if (_blobs[d]) return _blobs[d]; try { const [head, b64] = d.split(','), bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return _blobs[d] = URL.createObjectURL(new Blob([u], { type: (head.match(/data:([^;]+)/) || [])[1] || 'image/jpeg' })); } catch (e) { return ''; } };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
 const demoRoster = names => names.map(n => ({ name: n, pools: ['nfl'], paid: ['nfl'].filter(p => (hash(n + p) % 5) !== 0) }));
 const hash = s => { let x = 7; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
@@ -793,7 +796,7 @@ class Component extends DCLogic {
     const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
     const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools, authCode } = this.state;
     const sync = this.sync, me = sync ? (session ? session.name : '') : this.state.me;
-    const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), avOf = n => { const a = (rosterOf(n) || {}).avatar; return { avBg: a ? `url("${a}")` : 'none', initials: a ? '' : String(n || '?').split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() }; }, inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
+    const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), avOf = n => { const a = (rosterOf(n) || {}).avatar; return { avBg: a ? `url(${blobOf(a)})` : 'none', initials: a ? '' : String(n || '?').split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() }; }, inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
     const players = allPlayers.filter(inPool);
     const fee = Number(settings.entryFee) || 0, paidNames = players.filter(n => { const p = rosterOf(n); return p && p.paid.includes(pool); });
     const pot = fee * paidNames.length, weeksN = Math.max(1, Number(pool === 'nfl' ? settings.weeksNfl : settings.weeksCfb) || 1), wShare = Math.min(100, Math.max(0, Number(settings.weeklyShare) || 0));
