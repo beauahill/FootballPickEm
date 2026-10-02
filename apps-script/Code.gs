@@ -65,8 +65,17 @@ function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetB
 // Before this, state_() re-read the Settings tab a dozen times per call — the main reason the sheet got sluggish.
 const _rows = {};
 function rows_(n) { if (!_rows[n]) { const v = sheet_(n).getDataRange().getValues(); const h = v.shift(); _rows[n] = v.filter(r => String(r[0]) !== '').map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]))); } return _rows[n].map(r => ({ ...r })); }
-function append_(n, row) { sheet_(n).appendRow(row); delete _rows[n]; }
-function writeAll_(n, objs) { const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); delete _rows[n]; }
+function append_(n, row) { sheet_(n).appendRow(row); delete _rows[n]; bust_(); }
+// League state is cached for 5 minutes so page loads skip re-reading every tab. Any write busts it.
+function bust_() { try { CacheService.getScriptCache().remove('st_n'); } catch (e) {} }
+function cachedState_() {
+  const c = CacheService.getScriptCache();
+  try { const n = Number(c.get('st_n')); if (n) { const parts = c.getAll(Array.from({ length: n }, (_, i) => 'st_' + i)); const str = Array.from({ length: n }, (_, i) => parts['st_' + i]).join(''); if (str.length && Object.keys(parts).length === n) return str; } } catch (e) {}
+  const str = JSON.stringify({ ok: true, ...state_() });
+  try { const size = 90000, map = {}; let i = 0; for (; i * size < str.length; i++) map['st_' + i] = str.slice(i * size, (i + 1) * size); c.putAll(map, 300); c.put('st_n', String(i), 300); } catch (e) {}
+  return str;
+}
+function writeAll_(n, objs) { bust_(); const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); delete _rows[n]; }
 function setting_(k) { const r = rows_('Settings').find(x => x.key === k); return r ? String(r.value) : ''; }
 function setSetting_(k, v) { const all = rows_('Settings'); const r = all.find(x => x.key === k); if (r) r.value = v; else all.push({ key: k, value: v }); writeAll_('Settings', all); }
 // The commissioner's address for the To line on BCC blasts. Set 'adminEmail' in Settings; Session.* is a fallback
@@ -74,7 +83,7 @@ function setSetting_(k, v) { const all = rows_('Settings'); const r = all.find(x
 function me_() { const e = setting_('adminEmail'); if (e) return String(e).trim(); try { return Session.getEffectiveUser().getEmail(); } catch (x) { throw new Error('Add an adminEmail row to the Settings tab (your email) so results can be sent'); } }
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
-function doGet(e) { try { const a = (e.parameter || {}).action; if (a === 'state') return out_({ ok: true, ...state_() }); return out_({ ok: true, service: 'pickem' }); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
+function doGet(e) { try { const a = (e.parameter || {}).action; if (a === 'state') return ContentService.createTextOutput(cachedState_()).setMimeType(ContentService.MimeType.JSON); return out_({ ok: true, service: 'pickem' }); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
 function doPost(e) {
   const b = JSON.parse(e.postData.contents || '{}'), lock = LockService.getScriptLock();
   try { if (b.action !== 'login') lock.waitLock(20000); return out_(handle_(b)); }

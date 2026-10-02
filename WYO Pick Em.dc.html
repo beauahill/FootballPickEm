@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="mu3bu8y4" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v mu3bu8y4</div>
+<div data-build="muqe0as5" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v muqe0as5</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -556,7 +556,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.wyo.v1', BUILD = 'mu3bu8y4', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'muqe0as5', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -581,7 +581,7 @@ class Component extends DCLogic {
       session, loading: false, renaming: false, renameVal: '', authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
-  componentDidMount() { if (this.sync) this.load(); this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 30000); }
+  componentDidMount() { if (this.sync) { try { const c = JSON.parse(localStorage.getItem('pickem.live') || 'null'); if (c && c.data && c.url === this.props.apiUrl.trim()) this.applyState(c.j, null, true); } catch (e) {} this.load(); } this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 30000); }
   componentWillUnmount() { clearInterval(this.tick); }
   // GitHub Pages caches hard. Compare this build's stamp with the live file; reload once if it changed.
   async checkVersion() {
@@ -598,21 +598,30 @@ class Component extends DCLogic {
   async api(body, attempt = 0) {
     const url = this.props.apiUrl.trim();
     let text;
-    try { const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body) }) : await fetch(url + '?action=state', { cache: 'no-store' }); text = await r.text(); }
-    catch (e) { if (attempt < 2) { await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); return this.api(body, attempt + 1); } throw new Error('No response from the league sheet. Check your connection and try again.'); }
+    const ac = new AbortController(), to = setTimeout(() => ac.abort(), 25000);
+    try { const r = body ? await fetch(url, { method: 'POST', body: JSON.stringify(body), signal: ac.signal }) : await fetch(url + '?action=state', { cache: 'no-store', signal: ac.signal }); text = await r.text(); clearTimeout(to); }
+    catch (e) { clearTimeout(to); if (attempt < 2) { await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); return this.api(body, attempt + 1); } throw new Error('No response from the league sheet. Check your connection and try again.'); }
     let j; try { j = JSON.parse(text); } catch (e) {
       if (attempt < 2) { await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); return this.api(body, attempt + 1); }
       throw new Error('Google is slow right now — the sheet answered with a busy page. Wait a few seconds and try again.'); }
     if (!j.ok) { if (/Wrong email or PIN/.test(j.error || '') && body && body.action !== 'login' && body.action !== 'register' && this.state.session) { this.setSession(null); throw new Error('Your sign-in expired — please sign in again.'); } throw new Error(j.error || 'Request failed'); }
     return j;
   }
-  applyState(j, extra) {
+  applyState(j, extra, fromCache) {
     if (!j.data || !j.data.nfl) throw new Error('The sheet replied without league data. Re-deploy the Apps Script as a New version and try again.');
-    const me = this.state.session ? this.state.session.name : '';
+    if (!fromCache) try { localStorage.setItem('pickem.live', JSON.stringify({ url: this.props.apiUrl.trim(), data: 1, j: { ...j, ok: true } })); } catch (e) {}
+    // Keep the signed-in name in step with the sheet (case changes, admin edits). If it's gone, re-check via login.
+    let sess = this.state.session;
+    if (sess && j.players && !j.players.includes(sess.name)) {
+      const hit = j.players.find(n => n.toLowerCase().trim() === String(sess.name).toLowerCase().trim());
+      if (hit) { sess = { ...sess, name: hit }; try { localStorage.setItem('pickem.session', JSON.stringify(sess)); } catch (e) {} extra = { ...(extra || {}), session: sess }; }
+      else if (!fromCache && !this._relogin) { this._relogin = true; this.api({ action: 'login', email: sess.email, pin: sess.pin }).then(r => { const ns = { ...this.state.session, name: r.name }; try { localStorage.setItem('pickem.session', JSON.stringify(ns)); } catch (e) {} this.setState({ session: ns }); }).catch(() => {}).finally(() => { this._relogin = false; }); }
+    }
+    const me = sess ? sess.name : '';
     const tb = {}; Object.entries(j.tb || {}).forEach(([k, v]) => { if (k.startsWith(me + '|')) tb[k.slice(me.length + 1)] = v; });
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, accessCode: this.state.settings.accessCode }; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = Number((j.settings || {})[k]); if (!Number.isNaN(v) && (j.settings || {})[k] != null) settings[k] = v; });
     if (j.settings && j.settings.venmo != null) settings.venmo = String(j.settings.venmo);
-    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl'], paid: [] })), settings, picks: j.picks || {}, tb, allTb: j.tb || {}, challenges: j.challenges || [], loading: false, ...(extra || {}) });
+    this.setState({ data: j.data, players: j.players || [], roster: j.roster || (j.players || []).map(n => ({ name: n, pools: ['nfl'], paid: [] })), settings, picks: this.state.dirty && me ? { ...(j.picks || {}), ...Object.fromEntries(Object.entries(this.state.picks).filter(([k]) => k.startsWith(me + '|'))) } : (j.picks || {}), tb: this.state.dirty ? { ...tb, ...this.state.tb } : tb, hasLive: true, allTb: j.tb || {}, challenges: j.challenges || [], loading: false, ...(extra || {}) });
   }
   async load() { this.setState({ loading: true }); try { this.applyState(await this.api()); } catch (e) { this.setState({ loading: false }); this.showToast('Could not reach the league sheet: ' + e.message); } }
   setSession(session) { this.setState({ session, authName: '', authEmail: '', authPin: '', authError: '', adminOk: false, adminPin: '' }); try { session ? localStorage.setItem('pickem.session', JSON.stringify(session)) : localStorage.removeItem('pickem.session'); } catch (e) {} if (session) this.load(); }
@@ -939,7 +948,7 @@ class Component extends DCLogic {
       setP1: e => this.setSetting('pct1', e.target.value), setP2: e => this.setSetting('pct2', e.target.value), setP3: e => this.setSetting('pct3', e.target.value),
       feeLabel: money(fee), nflJoinCls: cls(!!authPools.nfl), cfbJoinCls: cls(!!authPools.cfb), toggleNfl: () => this.setState(s => ({ authPools: { ...s.authPools, nfl: !s.authPools.nfl } })), toggleCfb: () => this.setState(s => ({ authPools: { ...s.authPools, cfb: !s.authPools.cfb } })),
       joinTotal: money(fee * ((authPools.nfl ? 1 : 0) + (authPools.cfb ? 1 : 0))),
-      needsAuth: sync && !session, ready: !sync || (!!session && !loading), loading: sync && !!session && loading,
+      needsAuth: sync && !session, ready: !sync || (!!session && (!loading || !!this.state.hasLive)), loading: sync && !!session && loading && !this.state.hasLive,
       authTitle: authMode === 'login' ? 'Sign in' : 'Join the league', authHint: authMode === 'login' ? 'Your email and PIN. Same ones every week.' : 'The name is what shows on the board. Email is how you sign in. PIN is 4+ digits.',
       authName, authEmail, authPin, authError, isRegister: authMode === 'register',
       setAuthEmail: e => this.setState({ authEmail: e.target.value, authError: '' }), hasAuthError: !!authError, authBusy: busy === 'auth',
