@@ -16,7 +16,7 @@
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
   </style>
 </helmet>
-<div data-build="muqen4l7" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v muqen4l7</div>
+<div data-build="muqg8oa9" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v muqg8oa9</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
   <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
@@ -31,8 +31,9 @@
     </div>
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:12px">
+        <span style="flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ meAvBg }};font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-800)">{{ meInitials }}</span>
         <div><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Picking as</div><div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1">{{ me }}</div></div>
-        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ startRename }}" style="min-height:44px;font-size:15px">Change name</button><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
+        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><label class="btn btn-ghost" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;cursor:pointer">{{ photoLabel }}<input type="file" accept="image/*" onChange="{{ uploadPhoto }}" style="display:none"></label><sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ removePhoto }}" style="min-height:44px;font-size:15px">Remove photo</button></sc-if><button class="btn btn-ghost" onClick="{{ startRename }}" style="min-height:44px;font-size:15px">Change name</button><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
       </div>
     </sc-if>
     <sc-if value="{{ adminPicker }}" hint-placeholder-val="{{ false }}">
@@ -248,6 +249,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;max-width:360px">
         <button class="btn {{ standRecCls }}" onClick="{{ standRec }}" style="min-height:44px;font-size:16px">Record</button>
         <button class="btn {{ standMoneyCls }}" onClick="{{ standMoney }}" style="min-height:44px;font-size:16px">Money &amp; side action</button>
+        <button class="btn {{ standChartCls }}" onClick="{{ standChart }}" style="min-height:44px;font-size:16px">Rank over time</button>
       </div>
       <sc-if value="{{ isStandRec }}" hint-placeholder-val="{{ true }}">
         <table class="table" style="font-size:16px;width:100%">
@@ -256,7 +258,7 @@
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
               <tr style="background:{{ r.bg }};font-weight:{{ r.weight }}">
                 <td style="font-family:var(--font-heading);font-weight:600;font-size:18px;padding:10px 6px">{{ r.rank }}</td>
-                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere">{{ r.name }} <span class="tag tag-accent" style="margin-left:6px;display:{{ r.tagDisplay }}">{{ r.tag }}</span></td>
+                <td style="padding:10px 6px;font-size:17px;overflow-wrap:anywhere"><div style="display:flex;align-items:center;gap:10px"><span style="flex:none;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ r.avBg }};font-family:var(--font-heading);font-weight:600;font-size:13px;color:var(--color-accent-800)">{{ r.initials }}</span><span>{{ r.name }}</span><span class="tag tag-accent" style="display:{{ r.tagDisplay }}">{{ r.tag }}</span></div></td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap">{{ r.week }}</td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap;font-family:var(--font-heading);font-weight:600;font-size:18px">{{ r.season }}</td>
                 <td style="text-align:right;padding:10px 6px;white-space:nowrap;color:var(--color-neutral-600)">{{ r.back }}</td>
@@ -264,6 +266,25 @@
             </sc-for>
           </tbody>
         </table>
+      </sc-if>
+      <sc-if value="{{ isStandChart }}" hint-placeholder-val="{{ false }}">
+        <div class="blueprint" style="position:relative;border:1px solid var(--color-neutral-300);padding:16px 12px 8px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-if value="{{ chartReady }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 4px 8px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">{{ chartSelName }}</div>
+              <div style="font-size:15px;color:var(--color-neutral-700)">{{ chartSelLine }}</div>
+            </div>
+            <div style="width:100%;overflow-x:auto">{{ rankChart }}</div>
+          </sc-if>
+          <sc-if value="{{ chartEmpty }}" hint-placeholder-val="{{ false }}"><p style="margin:8px 4px;font-size:16px;color:var(--color-neutral-700)">The chart starts once two weeks are final.</p></sc-if>
+        </div>
+        <sc-if value="{{ chartReady }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+            <sc-for list="{{ chartChips }}" as="c" hint-placeholder-count="8">
+              <button class="btn {{ c.cls }}" onClick="{{ c.pick }}" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;gap:8px;padding-left:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ c.avBg }};font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)">{{ c.initials }}</span>{{ c.name }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
       </sc-if>
       <sc-if value="{{ isStandMoney }}" hint-placeholder-val="{{ false }}">
         <table class="table" style="font-size:16px;width:100%">
@@ -379,7 +400,7 @@
               <tbody>
                 <sc-for list="{{ grid.rows }}" as="r" hint-placeholder-count="8">
                   <tr style="background:{{ r.bg }}">
-                    <td style="position:sticky;left:0;z-index:1;background:var(--color-bg);padding:8px 7px;font-weight:{{ r.weight }};white-space:nowrap">{{ r.name }}</td>
+                    <td style="position:sticky;left:0;z-index:1;background:var(--color-bg);padding:8px 7px;font-weight:{{ r.weight }};white-space:nowrap"><div style="display:flex;align-items:center;gap:8px"><span style="flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);background-position:center;background-size:cover;background-image:{{ r.avBg }};font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-accent-800)">{{ r.initials }}</span><span>{{ r.name }}</span></div></td>
                     <td style="padding:8px 7px;text-align:center;font-family:var(--font-heading);font-weight:600;font-size:17px;white-space:nowrap">{{ r.rec }}</td>
                     <sc-for list="{{ r.cells }}" as="x" hint-placeholder-count="8"><td style="padding:8px 6px;text-align:center;font-size:13px;white-space:nowrap;background:{{ x.bg }};color:{{ x.color }};font-weight:{{ x.weight }}">{{ x.text }}</td></sc-for>
                     <td style="padding:8px 7px;text-align:center;color:var(--color-neutral-700)">{{ r.tb }}</td>
@@ -585,7 +606,7 @@ const PLAYERS = ['Beau H.','Travis K.','Dusty R.','Jolene M.','Cody W.','Marcus 
 const TEAM_COLORS = { Cardinals:'#97233F', Falcons:'#A71930', Ravens:'#241773', Bills:'#00338D', Panthers:'#0085CA', Bears:'#0B162A', Bengals:'#FB4F14', Browns:'#311D00', Cowboys:'#003594', Broncos:'#002244', Lions:'#0076B6', Packers:'#203731', Texans:'#03202F', Colts:'#002C5F', Jaguars:'#006778', Chiefs:'#E31837', Raiders:'#000000', Chargers:'#0080C6', Rams:'#003594', Dolphins:'#008E97', Vikings:'#4F2683', Patriots:'#002244', Saints:'#101820', Giants:'#0B2265', Jets:'#125740', Eagles:'#004C54', Steelers:'#101820', '49ers':'#AA0000', Seahawks:'#002244', Buccaneers:'#D50A0A', Titans:'#0C2340', Commanders:'#5A1414',
   Texas:'#BF5700', 'Ohio State':'#BB0000', LSU:'#461D7C', Clemson:'#F56600', Alabama:'#9E1B32', 'Florida State':'#782F40', 'Notre Dame':'#0C2340', Miami:'#F47321', Colorado:'#000000', 'Georgia Tech':'#003057', Utah:'#CC0000', UCLA:'#2D68C4', Auburn:'#0C2340', Baylor:'#154734', 'Boise State':'#0033A0', 'South Florida':'#006747', 'Oklahoma State':'#FF7300', Oregon:'#154733', TCU:'#4D1979', 'North Carolina':'#13294B', Michigan:'#00274C', Oklahoma:'#841617', Iowa:'#000000', 'Iowa State':'#C8102E', SMU:'#0033A0', Kansas:'#0051BA', Missouri:'#000000', Illinois:'#13294B', Duke:'#003087', Florida:'#0021A5', 'Utah State':'#0F2439', 'Texas A&M':'#500000', 'Arizona State':'#8C1D40', 'Mississippi State':'#660000', 'San Jose State':'#0055A2', Georgia:'#BA0C2F', 'Austin Peay':'#B01E24', Tennessee:'#FF8200', Wisconsin:'#C5050C', 'Ole Miss':'#14213D', Arkansas:'#9D2235', Ohio:'#00694E', Vanderbilt:'#000000', 'South Carolina':'#73000A', 'Texas Tech':'#CC0000', 'Oregon State':'#DC4405', Houston:'#C8102E', 'Penn State':'#041E42' };
 const teamColor = t => TEAM_COLORS[String(t).trim()] || 'var(--color-accent)';
-const KEY = 'pickem.wyo.v1', BUILD = 'muqen4l7', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'muqg8oa9', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-US');
@@ -672,6 +693,40 @@ class Component extends DCLogic {
     return simPick(player, g);
   }
   tbFor(player, key) { if (this.sync) return this.state.allTb ? this.state.allTb[`${player}|${key}`] : undefined; return player === this.state.me ? this.state.tb[key] : undefined; }
+  // Downscale to a 96px center-cropped JPEG (~3-5 KB) so it fits in one sheet cell.
+  savePhoto(file) {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const S = 96, c = document.createElement('canvas'); c.width = c.height = S; const m = Math.min(img.width, img.height); c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S); URL.revokeObjectURL(url);
+      let q = 0.82, d = c.toDataURL('image/jpeg', q); while (d.length > 28000 && q > 0.3) { q -= 0.15; d = c.toDataURL('image/jpeg', q); } this.sendPhoto(d); };
+    img.onerror = () => { URL.revokeObjectURL(url); this.showToast('Couldn\'t read that image — try a JPG or PNG.'); };
+    img.src = url;
+  }
+  sendPhoto(avatar) {
+    const s = this.state.session; if (!s) return; this.setState({ busy: 'photo' });
+    this.api({ action: 'avatar', email: s.email, pin: s.pin, avatar }).then(j => { this.applyState(j, { busy: '' }); this.showToast(avatar ? 'Photo updated.' : 'Photo removed.'); }).catch(err => { this.setState({ busy: '' }); this.showToast(err.message); });
+  }
+  rankChartVals(players, finals, me, avOf, cls) {
+    const empty = { chartReady: false, chartEmpty: true, rankChart: null, chartChips: [], chartSelName: '', chartSelLine: '' };
+    if (finals.length < 2 || players.length < 2) return empty;
+    const cum = {}; players.forEach(p => cum[p] = 0);
+    const ranks = {}; players.forEach(p => ranks[p] = []);
+    finals.forEach(w => { players.forEach(p => cum[p] += this.record(p, w)[0]); const sorted = players.slice().sort((a, b) => cum[b] - cum[a]); sorted.forEach(p => ranks[p].push(1 + sorted.filter(q => cum[q] > cum[p]).length)); });
+    const sel = players.includes(this.state.rankSel) ? this.state.rankSel : (players.includes(me) ? me : players[0]);
+    const n = players.length, W = Math.max(560, finals.length * 64 + 80), rowH = Math.max(18, Math.min(30, 360 / n)), H = n * rowH + 50, L = 60, R = 24, T = 14;
+    const x = i => L + (finals.length === 1 ? 0 : i * (W - L - R) / (finals.length - 1)), y = r => T + (r - 1) * rowH;
+    const e = React.createElement, kids = [];
+    for (let r = 1; r <= n; r++) { kids.push(e('line', { key: 'g' + r, x1: L, x2: W - R, y1: y(r), y2: y(r), stroke: 'var(--color-neutral-200)', strokeWidth: 1 })); if (n <= 20 || r === 1 || r % 5 === 0 || r === n) kids.push(e('text', { key: 'y' + r, x: L - 22, y: y(r) + 4, textAnchor: 'end', fontSize: 12, fill: 'var(--color-neutral-600)', fontFamily: 'var(--font-heading)' }, r)); }
+    finals.forEach((w, i) => kids.push(e('text', { key: 'x' + i, x: x(i), y: H - 12, textAnchor: 'middle', fontSize: 12, fill: 'var(--color-neutral-600)', fontFamily: 'var(--font-heading)', letterSpacing: '.06em' }, 'WK ' + w.n)));
+    const d = p => ranks[p].map((r, i) => (i ? 'L' : 'M') + x(i) + ' ' + y(r)).join(' ');
+    players.filter(p => p !== sel).forEach(p => kids.push(e('path', { key: 'p' + p, d: d(p), fill: 'none', stroke: p === me ? 'var(--color-accent-300)' : 'var(--color-neutral-300)', strokeWidth: 1.5, strokeLinejoin: 'round', style: { cursor: 'pointer' }, onClick: () => this.setState({ rankSel: p }) })));
+    kids.push(e('path', { key: 'sel', d: d(sel), fill: 'none', stroke: 'var(--color-accent)', strokeWidth: 3, strokeLinejoin: 'round' }));
+    ranks[sel].forEach((r, i) => { kids.push(e('rect', { key: 'd' + i, x: x(i) - 11, y: y(r) - 11, width: 22, height: 22, fill: 'var(--color-bg)', stroke: 'var(--color-accent)', strokeWidth: 1.5 })); kids.push(e('text', { key: 't' + i, x: x(i), y: y(r) + 4, textAnchor: 'middle', fontSize: 12, fontWeight: 600, fill: 'var(--color-accent-800)', fontFamily: 'var(--font-heading)' }, r)); });
+    const rk = ranks[sel], now = rk[rk.length - 1], best = Math.min(...rk), first = rk[0], moved = first - now;
+    return { chartReady: true, chartEmpty: false,
+      rankChart: e('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', style: { display: 'block', minWidth: Math.min(W, 560) + 'px', height: 'auto' } }, kids),
+      chartSelName: sel, chartSelLine: `Now #${now} · best #${best} · ${moved > 0 ? 'up ' + moved : moved < 0 ? 'down ' + -moved : 'no change'} since Wk ${finals[0].n}`,
+      chartChips: players.slice().sort((a, b) => ranks[a][ranks[a].length - 1] - ranks[b][ranks[b].length - 1] || a.localeCompare(b)).map(p => ({ name: p, ...avOf(p), cls: cls(p === sel), pick: () => this.setState({ rankSel: p }) })) };
+  }
   record(player, week) { let w = 0, l = 0; for (const g of week.games) { const win = winner(g); if (!win) continue; this.pickFor(player, g, true) === win ? w++ : l++; } return [w, l]; }
   mutate(fn, done) { this.setState(s => { const data = JSON.parse(JSON.stringify(s.data)); fn(data); return { data, adminDirty: true }; }, () => { this.persist({}); if (done) done(); }); }
   // ESPN's public scoreboard, fetched from this browser (Google's servers are blocked by ESPN).
@@ -738,7 +793,7 @@ class Component extends DCLogic {
     const trash = this.props.trashTalk ?? true, showTiebreak = this.props.tiebreaker ?? true;
     const { pool, tab, picks, tb, dirty, toast, adminOk, pin, pinError, session, loading, authMode, authName, authEmail, authPin, authError, adminDirty, busy, roster, settings, authPools, authCode } = this.state;
     const sync = this.sync, me = sync ? (session ? session.name : '') : this.state.me;
-    const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
+    const allPlayers = this.state.players, rosterOf = n => roster.find(p => p.name === n), avOf = n => { const a = (rosterOf(n) || {}).avatar; return { avBg: a ? `url("${a}")` : 'none', initials: a ? '' : String(n || '?').split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() }; }, inPool = n => { const p = rosterOf(n); return !p || p.pools.includes(pool); };
     const players = allPlayers.filter(inPool);
     const fee = Number(settings.entryFee) || 0, paidNames = players.filter(n => { const p = rosterOf(n); return p && p.paid.includes(pool); });
     const pot = fee * paidNames.length, weeksN = Math.max(1, Number(pool === 'nfl' ? settings.weeksNfl : settings.weeksCfb) || 1), wShare = Math.min(100, Math.max(0, Number(settings.weeklyShare) || 0));
@@ -881,7 +936,7 @@ class Component extends DCLogic {
     const top = rowsRaw[0], bottom = rowsRaw[rowsRaw.length - 1];
     let rank = 0, prevW = -1;
     const rows = rowsRaw.map((r, i) => { if (r.sw !== prevW) { rank = i + 1; prevW = r.sw; } const isMe = r.name === me; return {
-      rank, name: r.name, week: `${r.lw[0]}-${r.lw[1]}`, season: `${r.sw}-${r.sl}`, pct: r.sw + r.sl ? Math.round(r.sw / (r.sw + r.sl) * 1000) / 10 + '%' : '—',
+      rank, name: r.name, ...avOf(r.name), week: `${r.lw[0]}-${r.lw[1]}`, season: `${r.sw}-${r.sl}`, pct: r.sw + r.sl ? Math.round(r.sw / (r.sw + r.sl) * 1000) / 10 + '%' : '—',
       won: won[r.name] ? money(won[r.name]) : '—', rival: rivalRec[r.name].join('-'), side: chNet[r.name] ? (chNet[r.name] > 0 ? '+' : '−') + money(Math.abs(chNet[r.name])) : '—', sideColor: chNet[r.name] > 0 ? 'var(--color-accent-700)' : chNet[r.name] < 0 ? '#b42318' : 'var(--color-neutral-600)', proj: rank <= 3 && finals.length ? money(seasonPot * pct[rank - 1] / 100 / rowsRaw.filter(x => x.sw === r.sw).length) : '',
       back: (top ? top.sw : 0) - r.sw === 0 ? '—' : String((top ? top.sw : 0) - r.sw), bg: isMe ? 'var(--color-accent-100)' : 'transparent', weight: isMe ? '600' : '400',
       tag: isMe ? 'You' : (i === 0 ? T('Big dog', 'Leader') : i === rowsRaw.length - 1 ? T('Basement', 'Last') : ''), tagDisplay: isMe || i === 0 || i === rowsRaw.length - 1 ? 'inline-flex' : 'none' }; });
@@ -902,7 +957,7 @@ class Component extends DCLogic {
         pastGames: pw.games.map(g => { const win = winner(g), mine = this.pickFor(me, g, true); const pct = Math.round(players.filter(p => this.pickFor(p, g, true) === win).length / players.length * 100);
           return { away: g.away, home: g.home, score: `${g.as}-${g.hs}`, winner: win, mine: mine === win ? `${mine} ✓` : `${mine} ✗`, color: mine === win ? 'var(--color-accent-700)' : 'var(--color-neutral-500)', pool: pct + '%' }; }),
         grid: { cols: pw.games.map(g => ({ away: g.away, home: g.home, winner: winner(g) })),
-          rows: recs.map(({ p, r }) => ({ name: p, rec: `${r[0]}-${r[1]}`, bg: p === me ? 'var(--color-accent-100)' : 'transparent', weight: p === me ? '600' : '400',
+          rows: recs.map(({ p, r }) => ({ name: p, ...avOf(p), rec: `${r[0]}-${r[1]}`, bg: p === me ? 'var(--color-accent-100)' : 'transparent', weight: p === me ? '600' : '400',
             tb: (() => { const v = p === me ? this.tbFor(p, `${pool}-${pw.n}`) : (this.state.allTb || {})[`${p}|${pool}-${pw.n}`]; return v === '' || v == null ? '—' : String(v); })(),
             cells: pw.games.map(g => { const k = this.pickFor(p, g, true), ok = k && k === winner(g); return { text: k || '—', bg: ok ? 'var(--color-accent-100)' : 'transparent', color: ok ? 'var(--color-accent-800)' : 'var(--color-neutral-500)', weight: ok ? '600' : '400' }; }) })),
           note: tbTotal != null ? `Shaded = correct. TB = tiebreaker guess; actual ${tbTotal} total points.` : 'Shaded = correct.' } };
@@ -924,6 +979,10 @@ class Component extends DCLogic {
       pickStatusShown: this.state.statusOpen ? pickStatus : [], statusToggleLabel: this.state.statusOpen ? 'Hide' : (slackers ? `Who's missing (${slackers})` : 'Show all'),
       isStandRec: (this.state.standView || 'rec') === 'rec', isStandMoney: this.state.standView === 'money', standRecCls: cls((this.state.standView || 'rec') === 'rec'), standMoneyCls: cls(this.state.standView === 'money'),
       standRec: () => this.setState({ standView: 'rec' }), standMoney: () => this.setState({ standView: 'money' }),
+      isStandChart: this.state.standView === 'chart', standChartCls: cls(this.state.standView === 'chart'), standChart: () => this.setState({ standView: 'chart' }),
+      ...this.rankChartVals(players, finals, me, avOf, cls),
+      ...(() => { const a = avOf(me); return { meAvBg: a.avBg, meInitials: a.initials }; })(), hasPhoto: !!(rosterOf(me) || {}).avatar, photoLabel: busy === 'photo' ? 'Saving…' : ((rosterOf(me) || {}).avatar ? 'Change photo' : 'Add photo'),
+      uploadPhoto: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) this.savePhoto(f); }, removePhoto: () => this.sendPhoto(''),
       showNews: !this.state.newsSeen, dismissNews: () => { this.setState({ newsSeen: true }); try { localStorage.setItem('pickem.news', NEWS); } catch (e) {} },
       rivalTitle, rivalLine, callouts, hasCallouts: callouts.length > 0, calloutHint, canChallenge: calloutsOpen && opponents.length > 0, opponents, chTo, chAmt,
       setChTo: e => this.setState({ chTo: e.target.value }), setChAmt: e => this.setState({ chAmt: e.target.value }),

@@ -2,7 +2,7 @@
 const TZ = 'America/Denver';   // kickoff times are shown in this time zone
 const SEASON = 2026;
 const HEADERS = {
-  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid', 'note'],
+  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid', 'note', 'avatar'],
   Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread', 'kick'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
@@ -94,7 +94,7 @@ function doPost(e) {
 function state_() {
   const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = p.pick);
   const tb = {}; rows_('Tiebreaks').forEach(t => tb[t.player + '|' + t.key] = t.value);
-  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid), note: String(p.note || '') }));
+  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid), note: String(p.note || ''), avatar: String(p.avatar || '') }));
   const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
   settings.venmo = setting_('venmo');   // accessCode is deliberately NOT sent — admins see it via the 'auth' op
   const challenges = rows_('Challenges').map(c => ({ id: String(c.id), pool: String(c.pool), week: Number(c.week), from: String(c.from), to: String(c.to), amount: Number(c.amount), status: String(c.status), created: c.created ? new Date(c.created).toISOString() : '' }));
@@ -140,6 +140,12 @@ function handle_(b) {
     }
     case 'login': { const p = auth(); return { ok: true, name: String(p.name), email: String(p.email) }; }
     // Rename: names key Picks/Tiebreaks/Reminders/Challenges, so every tab is rewritten with the new name.
+    case 'avatar': {
+      const p = auth(), img = String(b.avatar || '');
+      if (img && (!/^data:image\/(jpeg|png|webp);base64,/.test(img) || img.length > 30000)) throw new Error('Image too large — try another photo');
+      p.avatar = img; writeAll_('Players', players);
+      return { ok: true, ...state_() };
+    }
     case 'rename': {
       const p = auth(), old = String(p.name), name = String(b.name || '').trim();
       if (name.length < 2) throw new Error('Name too short');
