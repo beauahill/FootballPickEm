@@ -2,7 +2,7 @@
 const TZ = 'America/Denver';   // kickoff times are shown in this time zone
 const SEASON = 2026;
 const HEADERS = {
-  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid', 'note', 'avatar'],
+  Players: ['name', 'email', 'pin', 'joined', 'pools', 'paid', 'note', 'avatar', 'team'],
   Games: ['pool', 'week', 'id', 'away', 'home', 'when', 'as', 'hs', 'espnId', 'spread', 'kick'],
   Picks: ['player', 'gameId', 'pick', 'updated'],
   Tiebreaks: ['player', 'key', 'value'],
@@ -26,6 +26,26 @@ function setup() {
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 // Text settings: accessCode gates registration (blank = open); venmo is the commissioner's handle shown on the Payments tab.
 const TEXT_SETTINGS = { accessCode: '', venmo: '', leagueName: '', leagueUrl: '', adminEmail: '' };
+// Favorite team (drives the page's team colors). Stored as the nickname, matching the Games tab's NFL names.
+const NFL_TEAMS = ['Cardinals', 'Falcons', 'Ravens', 'Bills', 'Panthers', 'Bears', 'Bengals', 'Browns', 'Cowboys', 'Broncos', 'Lions', 'Packers', 'Texans', 'Colts', 'Jaguars', 'Chiefs',
+  'Raiders', 'Chargers', 'Rams', 'Dolphins', 'Vikings', 'Patriots', 'Saints', 'Giants', 'Jets', 'Eagles', 'Steelers', '49ers', 'Seahawks', 'Buccaneers', 'Titans', 'Commanders'];
+// Test copies: put testMode = 1 in the Settings tab and no email is sent (it's logged instead).
+function mail_(o) { if (setting_('testMode')) { console.log('testMode — not sent: ' + o.subject + ' → ' + (o.bcc || o.to)); return; } MailApp.sendEmail(o); }
+// Sheet cells that start with = + - @ are read as formulas. Anything typed by a player is stored as plain text.
+const esc_ = v => typeof v === 'string' && (/^[=+@\t\r]/.test(v) || (/^-/.test(v) && isNaN(Number(v)))) ? "'" + v : v;
+// Wrong-PIN throttle: after `max` misses in 15 minutes, that sign-in (or the admin PIN) is refused until the window passes.
+function guard_(key, max) { try { if ((Number(CacheService.getScriptCache().get('fail_' + key)) || 0) >= max) throw new Error('Too many wrong PINs. Wait 15 minutes and try again.'); } catch (e) { if (/Too many/.test(e.message)) throw e; } }
+function fail_(key) { try { const c = CacheService.getScriptCache(), n = (Number(c.get('fail_' + key)) || 0) + 1; c.put('fail_' + key, String(n), 900); } catch (e) {} }
+function clearFails_(key) { try { CacheService.getScriptCache().remove('fail_' + key); } catch (e) {} }
+// Scheduled jobs take the same lock as saves, but only around their sheet writes (ESPN fetches and emails happen outside it).
+function withLock_(fn) { const l = LockService.getScriptLock(); if (!l.tryLock(30000)) { console.warn('Sheet busy — skipped this run'); return 0; } try { Object.keys(_rows).forEach(k => delete _rows[k]); return fn(); } finally { l.releaseLock(); } }
+// A game is locked once it's scored or kicked off. A game with no kickoff time locks when its week's first game does.
+function lockCheck_(games, now) {
+  const begun = {}; games.forEach(g => { if ((g.kick && new Date(g.kick) <= now) || g.as !== '') begun[g.pool + '|' + Number(g.week)] = true; });
+  return g => g.as !== '' || g.hs !== '' || (g.kick ? new Date(g.kick) <= now : !!begun[g.pool + '|' + Number(g.week)]);
+}
+// The tiebreaker locks when every game of the week is locked (the page disables the box at the same point).
+function tbLocked_(pool, week, games, isLocked) { const wk = games.filter(g => g.pool === pool && Number(g.week) === week); return wk.length > 0 && wk.every(isLocked); }
 const split_ = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 // Run once after pasting new code: makes Google ask for permission to reach ESPN, and prints how many games it sees.
 function testEspn() { const n = espn_('nfl', 1).length; Logger.log('ESPN reachable — ' + n + ' NFL week 1 games'); return n; }
@@ -36,13 +56,13 @@ function installTrigger() {
   ScriptApp.newTrigger('remind').timeBased().everyHours(1).create();
 }
 // Hourly: email anyone missing picks on games that kick off within REMIND_HOURS. Returns how many emails went out.
-function remind() {
+function remind(locked) {
   const players = rows_('Players'), have = new Set(rows_('Picks').map(p => p.player + '|' + p.gameId));
   const sent = rows_('Reminders'), done = new Set(sent.map(r => r.player + '|' + r.gameId));
   const now = new Date(), horizon = new Date(now.getTime() + REMIND_HOURS * 3600e3);
   const games = rows_('Games').filter(g => g.kick && g.as === '' && new Date(g.kick) > now && new Date(g.kick) <= horizon).sort((a, b) => new Date(a.kick) - new Date(b.kick));
   const name = setting_('leagueName') || LEAGUE_NAME, url = setting_('leagueUrl') || LEAGUE_URL;
-  let n = 0;
+  let n = 0; const fresh = [];
   players.forEach(p => {
     const email = String(p.email || '').trim(); if (!email) return;
     const pools = split_(p.pools), miss = games.filter(g => pools.includes(g.pool) && !have.has(p.name + '|' + String(g.id)));
@@ -50,11 +70,12 @@ function remind() {
     const lines = miss.map(g => '  • ' + g.away + ' at ' + g.home + ' — ' + Utilities.formatDate(new Date(g.kick), TZ, 'EEE h:mm a') + (g.pool === 'cfb' ? ' (College)' : ''));
     const body = 'Hey ' + p.name + ',\n\nYou have ' + miss.length + ' game' + (miss.length === 1 ? '' : 's') + ' kicking off in the next ' + REMIND_HOURS + ' hours with no pick:\n\n' + lines.join('\n') + '\n\nNo pick = automatic loss. Get in here: ' + url + '\n\n— ' + name;
     try {
-      MailApp.sendEmail({ to: email, subject: name + ': ' + miss.length + ' pick' + (miss.length === 1 ? '' : 's') + ' missing before kickoff', body });
-      miss.forEach(g => sent.push({ player: p.name, gameId: String(g.id), sent: new Date() })); n++;
+      mail_({ to: email, subject: name + ': ' + miss.length + ' pick' + (miss.length === 1 ? '' : 's') + ' missing before kickoff', body });
+      miss.forEach(g => fresh.push({ player: p.name, gameId: String(g.id), sent: new Date() })); n++;
     } catch (e) { console.warn('remind ' + email + ': ' + e); }
   });
-  if (n) writeAll_('Reminders', sent.filter(r => games.some(g => String(g.id) === String(r.gameId)) || new Date(r.sent) > new Date(now.getTime() - 14 * 86400e3)));
+  const save = () => { const cur = rows_('Reminders').concat(fresh); writeAll_('Reminders', cur.filter(r => games.some(g => String(g.id) === String(r.gameId)) || new Date(r.sent) > new Date(now.getTime() - 14 * 86400e3))); };
+  if (n) locked === true ? save() : withLock_(save);   // the hourly trigger passes an event object, so only `true` means "already locked"
   return n;
 }
 
@@ -65,7 +86,7 @@ function sheet_(n) { const ss = SpreadsheetApp.getActive(); let s = ss.getSheetB
 // Before this, state_() re-read the Settings tab a dozen times per call — the main reason the sheet got sluggish.
 const _rows = {};
 function rows_(n) { if (!_rows[n]) { const v = sheet_(n).getDataRange().getValues(); const h = v.shift(); _rows[n] = v.filter(r => String(r[0]) !== '').map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]))); } return _rows[n].map(r => ({ ...r })); }
-function append_(n, row) { sheet_(n).appendRow(row); delete _rows[n]; bust_(); }
+function append_(n, row) { sheet_(n).appendRow(row.map(esc_)); delete _rows[n]; SpreadsheetApp.flush(); bust_(); }
 // League state is cached for 5 minutes so page loads skip re-reading every tab. Any write busts it.
 function bust_() { try { CacheService.getScriptCache().remove('st_n'); } catch (e) {} }
 function cachedState_() {
@@ -75,9 +96,17 @@ function cachedState_() {
   try { const size = 90000, map = {}; let i = 0; for (; i * size < str.length; i++) map['st_' + i] = str.slice(i * size, (i + 1) * size); c.putAll(map, 300); c.put('st_n', String(i), 300); } catch (e) {}
   return str;
 }
-function writeAll_(n, objs) { bust_(); const s = sheet_(n), H = HEADERS[n]; s.clearContents(); s.appendRow(H); if (objs.length) s.getRange(2, 1, objs.length, H.length).setValues(objs.map(o => H.map(k => o[k] == null ? '' : o[k]))); delete _rows[n]; }
+// Overwrites the tab in place, then clears leftover rows. (It used to clear the whole tab first, so a page load in that
+// gap could read — and cache for 5 minutes — an empty tab.)
+function writeAll_(n, objs) {
+  const s = sheet_(n), H = HEADERS[n], vals = [H].concat(objs.map(o => H.map(k => esc_(o[k] == null ? '' : o[k]))));
+  s.getRange(1, 1, vals.length, H.length).setValues(vals);
+  const extra = s.getLastRow() - vals.length; if (extra > 0) s.getRange(vals.length + 1, 1, extra, Math.max(H.length, s.getLastColumn())).clearContent();
+  delete _rows[n]; SpreadsheetApp.flush(); bust_();
+}
 function setting_(k) { const r = rows_('Settings').find(x => x.key === k); return r ? String(r.value) : ''; }
-function setSetting_(k, v) { const all = rows_('Settings'); const r = all.find(x => x.key === k); if (r) r.value = v; else all.push({ key: k, value: v }); writeAll_('Settings', all); }
+function setSettings_(m) { const all = rows_('Settings'); Object.entries(m).forEach(([k, v]) => { const r = all.find(x => x.key === k); if (r) r.value = v; else all.push({ key: k, value: v }); }); writeAll_('Settings', all); }
+function setSetting_(k, v) { setSettings_({ [k]: v }); }
 // The commissioner's address for the To line on BCC blasts. Set 'adminEmail' in Settings; Session.* is a fallback
 // (it needs a permission scope Google only grants after re-running a function in the editor).
 function me_() { const e = setting_('adminEmail'); if (e) return String(e).trim(); try { return Session.getEffectiveUser().getEmail(); } catch (x) { throw new Error('Add an adminEmail row to the Settings tab (your email) so results can be sent'); } }
@@ -86,15 +115,19 @@ function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).set
 function doGet(e) { try { const a = (e.parameter || {}).action; if (a === 'state') return ContentService.createTextOutput(cachedState_()).setMimeType(ContentService.MimeType.JSON); return out_({ ok: true, service: 'pickem' }); } catch (err) { return out_({ ok: false, error: String(err.message || err) }); } }
 function doPost(e) {
   const b = JSON.parse(e.postData.contents || '{}'), lock = LockService.getScriptLock();
-  try { if (b.action !== 'login') lock.waitLock(20000); return out_(handle_(b)); }
+  try { if (b.action !== 'login' && b.action !== 'mine') lock.waitLock(20000); return out_(handle_(b)); }
   catch (err) { return out_({ ok: false, error: String(err.message || err) }); }
   finally { try { lock.releaseLock(); } catch (e2) {} }
 }
 
-function state_() {
-  const picks = {}; rows_('Picks').forEach(p => picks[p.player + '|' + p.gameId] = p.pick);
-  const tb = {}; rows_('Tiebreaks').forEach(t => tb[t.player + '|' + t.key] = t.value);
-  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid), note: String(p.note || ''), avatar: String(p.avatar || '') }));
+// viewer = the signed-in player's name on authenticated calls; the public (cached) state has no viewer.
+// Other players' picks on games that haven't locked come back as '?' (so "who still owes picks" keeps working), and
+// their tiebreaker guesses stay out until the week's tiebreaker locks.
+function state_(viewer) {
+  const games = rows_('Games'), isLocked = lockCheck_(games, new Date()), byId = {}; games.forEach(g => byId[String(g.id)] = g);
+  const picks = {}; rows_('Picks').forEach(p => { const g = byId[String(p.gameId)]; picks[p.player + '|' + p.gameId] = (viewer && String(p.player) === viewer) || !g || isLocked(g) ? p.pick : '?'; });
+  const tb = {}; rows_('Tiebreaks').forEach(t => { const m = /^(nfl|cfb)-(\d+)$/.exec(String(t.key)); if ((viewer && String(t.player) === viewer) || !m || tbLocked_(m[1], Number(m[2]), games, isLocked)) tb[t.player + '|' + t.key] = t.value; });
+  const roster = rows_('Players').map(p => ({ name: String(p.name), pools: split_(p.pools), paid: split_(p.paid), note: String(p.note || ''), avatar: String(p.avatar || ''), team: String(p.team || '') }));
   const settings = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { const v = setting_(k); settings[k] = v === '' ? PAYOUT_DEFAULTS[k] : Number(v); });
   settings.venmo = setting_('venmo');   // accessCode is deliberately NOT sent — admins see it via the 'auth' op
   const challenges = rows_('Challenges').map(c => ({ id: String(c.id), pool: String(c.pool), week: Number(c.week), from: String(c.from), to: String(c.to), amount: Number(c.amount), status: String(c.status), created: c.created ? new Date(c.created).toISOString() : '' }));
@@ -123,11 +156,12 @@ function handle_(b) {
   const findName = n => players.find(p => norm(p.name) === norm(n));
   const findEmail = e => players.find(p => norm(p.email) === norm(e));
   const pin = v => String(v == null ? '' : v).trim().replace(/\.0+$/, '').replace(/^0+(?=\d)/, '');
-  const auth = () => { const p = findEmail(b.email); if (!p) throw new Error('Wrong email or PIN'); if (pin(p.pin) !== pin(b.pin)) throw new Error('Wrong email or PIN — sign out and back in if your PIN changed'); return p; };
+  const auth = () => { const key = 'p_' + norm(b.email); guard_(key, 8); const p = findEmail(b.email); if (!p) { fail_(key); throw new Error('Wrong email or PIN'); } if (pin(p.pin) !== pin(b.pin)) { fail_(key); throw new Error('Wrong email or PIN — sign out and back in if your PIN changed'); } clearFails_(key); return p; };
+  const okName = n => { if (n.length < 2) throw new Error('Name too short'); if (n.length > 40) throw new Error('Name too long'); if (/^[=+\-@]/.test(n)) throw new Error('Names can\'t start with = + - or @'); };
   switch (b.action) {
     case 'register': {
       const name = String(b.name || '').trim(), email = norm(b.email);
-      if (name.length < 2) throw new Error('Name too short');
+      okName(name);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('That email doesn\'t look right');
       if (!/^\d{4,}$/.test(String(b.pin))) throw new Error('PIN must be at least 4 digits');
       const code = setting_('accessCode'); if (code && norm(b.code) !== norm(code)) throw new Error('Wrong league access code. Ask the commissioner.');
@@ -139,44 +173,68 @@ function handle_(b) {
       return { ok: true, name, email };
     }
     case 'login': { const p = auth(); return { ok: true, name: String(p.name), email: String(p.email) }; }
+    // The signed-in player's own picks and tiebreakers (the public state hides unlocked ones). Read-only, no lock.
+    case 'mine': {
+      const p = auth(), me = String(p.name), picks = {}, tb = {};
+      rows_('Picks').forEach(x => { if (String(x.player) === me) picks[me + '|' + x.gameId] = x.pick; });
+      rows_('Tiebreaks').forEach(t => { if (String(t.player) === me) tb[me + '|' + t.key] = t.value; });
+      return { ok: true, name: me, picks, tb };
+    }
+    case 'setTeam': {
+      const p = auth(), t = String(b.team || '').trim();
+      if (t && NFL_TEAMS.indexOf(t) < 0) throw new Error('Pick a team from the list');
+      p.team = t; writeAll_('Players', players);
+      return { ok: true, ...state_(String(p.name)) };
+    }
     // Rename: names key Picks/Tiebreaks/Reminders/Challenges, so every tab is rewritten with the new name.
     case 'avatar': {
       const p = auth(), img = String(b.avatar || '');
       if (img && (!/^data:image\/(jpeg|png|webp);base64,/.test(img) || img.length > 30000)) throw new Error('Image too large — try another photo');
       p.avatar = img; writeAll_('Players', players);
-      return { ok: true, ...state_() };
+      return { ok: true, ...state_(String(p.name)) };
     }
     case 'rename': {
       const p = auth(), old = String(p.name), name = String(b.name || '').trim();
-      if (name.length < 2) throw new Error('Name too short');
-      if (norm(name) === norm(old)) return { ok: true, name: old, ...state_() };
+      okName(name);
+      if (norm(name) === norm(old)) return { ok: true, name: old, ...state_(old) };
       if (findName(name)) throw new Error('That name is taken — add a last initial');
       p.name = name; writeAll_('Players', players);
       const fix = (tab, keys) => { const all = rows_(tab); let hit = false; all.forEach(r => keys.forEach(k => { if (String(r[k]) === old) { r[k] = name; hit = true; } })); if (hit) writeAll_(tab, all); };
       fix('Picks', ['player']); fix('Tiebreaks', ['player']); fix('Reminders', ['player']); fix('Challenges', ['from', 'to']);
-      return { ok: true, name, ...state_() };
+      return { ok: true, name, ...state_(name) };
     }
     case 'savePicks': {
       const p = auth(), me = String(p.name);
       {
-        const games = rows_('Games'), now = new Date();
+        const games = rows_('Games'), isLocked = lockCheck_(games, new Date());
         // Only games that are still open may change. Locked games (kicked off or scored) are left exactly as they are —
         // an earlier version deleted the old pick before checking the lock, which wiped picks on games already played.
+        // Anything that isn't one of the game's two teams (unknown game, '?', a formula) is skipped and the stored pick kept.
         const open = {};
         Object.entries(b.picks || {}).forEach(([gid, pick]) => {
-          const g = games.find(x => String(x.id) === gid);
-          if (g && (g.as !== '' || g.hs !== '')) return;
-          if (g && g.kick && new Date(g.kick) <= now) return;
-          open[gid] = pick;
+          const g = games.find(x => String(x.id) === String(gid)); if (!g || isLocked(g)) return;
+          const v = String(pick); if (v !== String(g.away) && v !== String(g.home)) return;
+          open[String(g.id)] = v;
         });
-        const all = rows_('Picks').filter(x => !(String(x.player) === me && open[String(x.gameId)] !== undefined));
-        Object.entries(open).forEach(([gid, pick]) => all.push({ player: me, gameId: gid, pick, updated: new Date() }));
-        writeAll_('Picks', all);
-        const tbs = rows_('Tiebreaks').filter(x => !(String(x.player) === me && (b.tb || {})[x.key] !== undefined));
-        Object.entries(b.tb || {}).forEach(([k, v]) => tbs.push({ player: me, key: k, value: v }));
-        writeAll_('Tiebreaks', tbs);
+        if (Object.keys(open).length) {
+          const all = rows_('Picks').filter(x => !(String(x.player) === me && open[String(x.gameId)] !== undefined));
+          Object.entries(open).forEach(([gid, pick]) => all.push({ player: me, gameId: gid, pick, updated: new Date() }));
+          writeAll_('Picks', all);
+        }
+        // Tiebreaker: whole points 0-999 for a real pool-week, and only until that week's tiebreaker locks.
+        const tbIn = {};
+        Object.entries(b.tb || {}).forEach(([k, v]) => {
+          const m = /^(nfl|cfb)-(\d+)$/.exec(String(k)), t = String(v).trim();
+          if (!m || !/^\d{1,3}$/.test(t) || tbLocked_(m[1], Number(m[2]), games, isLocked)) return;
+          tbIn[String(k)] = Number(t);
+        });
+        if (Object.keys(tbIn).length) {
+          const tbs = rows_('Tiebreaks').filter(x => !(String(x.player) === me && tbIn[String(x.key)] !== undefined));
+          Object.entries(tbIn).forEach(([k, v]) => tbs.push({ player: me, key: k, value: v }));
+          writeAll_('Tiebreaks', tbs);
+        }
       }
-      return { ok: true, ...state_() };
+      return { ok: true, ...state_(me) };
     }
     // Head-to-head callouts: challenger names opponent + stake; opponent accepts or declines; closes at the week's first kickoff.
     case 'challenge': {
@@ -186,8 +244,9 @@ function handle_(b) {
       if (weekStarted_(pool, week)) throw new Error('Callouts closed at the first kickoff');
       const all = rows_('Challenges');
       if (all.some(c => String(c.pool) === pool && Number(c.week) === week && ['pending', 'accepted'].includes(String(c.status)) && ((String(c.from) === me && String(c.to) === to) || (String(c.from) === to && String(c.to) === me)))) throw new Error('You two already have a callout this week');
+      if (pool !== 'nfl' && pool !== 'cfb') throw new Error('Bad pool');
       append_('Challenges', ['c' + Date.now().toString(36), pool, week, me, to, amt, 'pending', new Date()]);
-      return { ok: true, ...state_() };
+      return { ok: true, ...state_(me) };
     }
     case 'respond': {
       const p = auth(), me = String(p.name), all = rows_('Challenges'), c = all.find(x => String(x.id) === String(b.id)); if (!c) throw new Error('No such callout');
@@ -197,9 +256,9 @@ function handle_(b) {
       if ((st === 'accepted' || st === 'declined') && String(c.to) !== me) throw new Error('Only the player called out can answer');
       if (st === 'withdrawn' && String(c.from) !== me) throw new Error('Only the challenger can withdraw');
       if (weekStarted_(String(c.pool), Number(c.week))) throw new Error('Callouts closed at the first kickoff');
-      c.status = st; writeAll_('Challenges', all); return { ok: true, ...state_() };
+      c.status = st; writeAll_('Challenges', all); return { ok: true, ...state_(me) };
     }
-    case 'admin': if (String(b.adminPin) !== setting_('adminPin')) throw new Error('Wrong admin PIN'); return admin_(b);
+    case 'admin': guard_('admin', 10); if (String(b.adminPin) !== setting_('adminPin')) { fail_('admin'); throw new Error('Wrong admin PIN'); } clearFails_('admin'); return admin_(b);
   }
   throw new Error('Unknown action');
 }
@@ -208,8 +267,8 @@ function admin_(b) {
     case 'auth': return { ok: true, accessCode: setting_('accessCode') };
     case 'setPool': {
       if (b.weeks) savePool_(b.pool, b.weeks);
-      if (b.settings) { Object.keys(PAYOUT_DEFAULTS).forEach(k => { if (b.settings[k] != null && b.settings[k] !== '') setSetting_(k, String(Number(b.settings[k]))); });
-        Object.keys(TEXT_SETTINGS).forEach(k => { if (b.settings[k] != null) setSetting_(k, String(b.settings[k]).trim()); }); }
+      if (b.settings) { const m = {}; Object.keys(PAYOUT_DEFAULTS).forEach(k => { if (b.settings[k] != null && b.settings[k] !== '') m[k] = String(Number(b.settings[k])); });
+        Object.keys(TEXT_SETTINGS).forEach(k => { if (b.settings[k] != null) m[k] = String(b.settings[k]).trim(); }); if (Object.keys(m).length) setSettings_(m); }
       return { ok: true, ...state_() };
     }
     case 'setPaid': {
@@ -238,16 +297,20 @@ function admin_(b) {
       savePool_(b.pool, P.weeks);
       return { ok: true, added, ...state_() };
     }
-    case 'pullScores': return { ok: true, updated: pull_(b.pool, b.week), ...state_() };
-    case 'sendReminders': return { ok: true, sent: remind(), ...state_() };
+    case 'pullScores': return { ok: true, updated: pull_(b.pool, b.week, true), ...state_() };
+    case 'sendReminders': return { ok: true, sent: remind(true), ...state_() };
     case 'sendResults': return { ok: true, sent: sendResults_(b.pool, Number(b.week)), ...state_() };
     case 'notify': return { ok: true, sent: notify_(String(b.to || 'all'), String(b.subject || ''), String(b.message || '')), ...state_() };
   }
   throw new Error('Unknown admin op');
 }
-function pull_(pool, week) {
+function pull_(pool, week, locked) {
+  const ev = espn_(pool, week);   // network first, outside the lock
+  return locked === true ? applyPull_(pool, week, ev) : withLock_(() => applyPull_(pool, week, ev));
+}
+function applyPull_(pool, week, ev) {
   const P = pool_(pool), w = P.weeks[week - 1]; if (!w) return 0;
-  const ev = espn_(pool, week); let n = 0;
+  let n = 0;
   w.games.forEach(g => {
     const m = ev.find(e => (g.espnId && e.espnId === g.espnId) || (e.away.toLowerCase() === g.away.toLowerCase() && e.home.toLowerCase() === g.home.toLowerCase()));
     if (m && g.spread == null && m.spread != null) { g.spread = m.spread; n++; }
@@ -262,7 +325,7 @@ function autoPull() {
     try { autoImport_(pool); } catch (e) { console.warn('autoImport ' + pool + ': ' + e); }
     pool_(pool).weeks.forEach(w => { if (w.games.some(g => g.as == null || g.hs == null)) { try { pull_(pool, w.n); } catch (e) { console.warn('pull ' + pool + ' wk' + w.n + ': ' + e); } } });
   });
-  weeklyResults_();
+  withLock_(weeklyResults_);
 }
 // After the last game of a week is scored, email everyone in that pool the results once.
 function weeklyResults_() {
@@ -311,7 +374,7 @@ function sendResults_(pool, weekN) {
   if (ch.length) { L.push('', 'CALLOUTS'); ch.forEach(c => { const a = by[String(c.from)], b = by[String(c.to)]; L.push('  ' + c.from + ' ' + a.ww + ' – ' + b.ww + ' ' + c.to + ': ' + (a.ww > b.ww ? c.from + ' wins $' + c.amount : a.ww < b.ww ? c.to + ' wins $' + c.amount : 'push')); }); }
   L.push('', 'Full results and next week\'s games: ' + url, '', '— ' + name);
   const emails = players.map(p => String(p.email || '').trim()).filter(Boolean);
-  if (emails.length) MailApp.sendEmail({ to: me_(), bcc: emails.join(','), subject: name + ': ' + label + ' Week ' + weekN + ' results — ' + wins.map(r => r.n).join(' & ') + ' take' + (wins.length > 1 ? '' : 's') + ' it', body: L.join('\n') });
+  if (emails.length) mail_({ to: me_(), bcc: emails.join(','), subject: name + ': ' + label + ' Week ' + weekN + ' results — ' + wins.map(r => r.n).join(' & ') + ' take' + (wins.length > 1 ? '' : 's') + ' it', body: L.join('\n') });
   setSetting_('resultsSent_' + pool + '_' + weekN, new Date().toISOString());
   return emails.length;
 }
@@ -322,17 +385,21 @@ function notify_(to, subject, message) {
   if (!list.length) throw new Error('No email on file for that player');
   if (!String(subject || '').trim() || !String(message || '').trim()) throw new Error('Need a subject and a message');
   const body = String(message).trim() + '\n\n— ' + name;
-  if (to === 'all') MailApp.sendEmail({ to: me_(), bcc: list.join(','), subject: name + ': ' + subject.trim(), body });
-  else MailApp.sendEmail({ to: list[0], subject: name + ': ' + subject.trim(), body });
+  if (to === 'all') mail_({ to: me_(), bcc: list.join(','), subject: name + ': ' + subject.trim(), body });
+  else mail_({ to: list[0], subject: name + ': ' + subject.trim(), body });
   return list.length;
 }
 function autoImport_(pool) {
   const cur = currentWeek_(pool); if (!cur) return;
-  const P = pool_(pool);
-  while (P.weeks.length < cur) P.weeks.push({ n: P.weeks.length + 1, games: [] });
-  const w = P.weeks[cur - 1]; if (w.games.length) return;
-  espn_(pool, cur).forEach(g => { if (pool === 'cfb' && !g.ranked) return; w.games.push(g); });
-  if (w.games.length) savePool_(pool, P.weeks);
+  { const P = pool_(pool), w = P.weeks[cur - 1]; if (w && w.games.length) return; }
+  const ev = espn_(pool, cur);   // network first, outside the lock
+  withLock_(() => {
+    const P = pool_(pool);
+    while (P.weeks.length < cur) P.weeks.push({ n: P.weeks.length + 1, games: [] });
+    const w = P.weeks[cur - 1]; if (w.games.length) return;
+    ev.forEach(g => { if (pool === 'cfb' && !g.ranked) return; w.games.push(g); });
+    if (w.games.length) savePool_(pool, P.weeks);
+  });
 }
 function currentWeek_(pool) {
   const url = 'https://site.api.espn.com/apis/site/v2/sports/football/' + (pool === 'nfl' ? 'nfl' : 'college-football') + '/scoreboard';
