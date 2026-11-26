@@ -137,6 +137,17 @@
         </sc-for>
       </div>
 
+      <sc-if value="{{ showTiebreak }}" hint-placeholder-val="{{ true }}">
+        <div class="blueprint" style="margin-top:24px;padding:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:20px">Tiebreaker: total points in {{ tiebreakGame }}</div>
+            <div style="font-size:14px;color:var(--color-neutral-700)">Closest guess wins the week if it's tied.</div>
+          </div>
+          <input class="input" type="number" inputMode="numeric" min="0" max="150" placeholder="e.g. 47" value="{{ tiebreak }}" onChange="{{ setTiebreak }}" disabled="{{ weekLocked }}" style="width:140px;min-height:52px;font-size:24px;text-align:center;font-family:var(--font-heading);font-weight:600">
+        </div>
+      </sc-if>
+
       <div class="blueprint" style="margin-top:24px;padding:16px;display:grid;gap:12px">
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
         <div>
@@ -169,17 +180,6 @@
         </sc-if>
         <div style="font-size:13px;color:var(--color-neutral-700)">{{ calloutHint }}</div>
       </div>
-
-      <sc-if value="{{ showTiebreak }}" hint-placeholder-val="{{ true }}">
-        <div class="blueprint" style="margin-top:24px;padding:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
-          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-          <div>
-            <div style="font-family:var(--font-heading);font-weight:600;font-size:20px">Tiebreaker: total points in {{ tiebreakGame }}</div>
-            <div style="font-size:14px;color:var(--color-neutral-700)">Closest guess wins the week if it's tied.</div>
-          </div>
-          <input class="input" type="number" inputMode="numeric" min="0" max="150" placeholder="e.g. 47" value="{{ tiebreak }}" onChange="{{ setTiebreak }}" disabled="{{ weekLocked }}" style="width:140px;min-height:52px;font-size:24px;text-align:center;font-family:var(--font-heading);font-weight:600">
-        </div>
-      </sc-if>
 
       <sc-if value="{{ showNews }}" hint-placeholder-val="{{ false }}">
         <div class="blueprint" style="margin-top:24px;padding:14px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start">
