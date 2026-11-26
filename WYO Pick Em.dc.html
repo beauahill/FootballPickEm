@@ -835,7 +835,7 @@ class Component extends DCLogic {
     const lum = h => { const n = parseInt(h.slice(1), 16), f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(n >> 16) + .7152 * f((n >> 8) & 255) + .0722 * f(n & 255); };
     const [band, slash] = lum(t[0]) <= lum(t[1]) ? [t[0], t[1]] : [t[1], t[0]], ab = ESPN_NFL[team];
     const bandCss = `html header.pe-band.pe-band.pe-band{background:linear-gradient(115deg,${band} 74%,${slash} 74% 77.5%,${band} 77.5%)}`
-      + (ab ? `.pe-band::before{content:"";position:absolute;inset:0;background:url(https://a.espncdn.com/i/teamlogos/nfl/500/${ab}.png) center/cover no-repeat;opacity:.1;pointer-events:none}` : '')
+      + (ab ? `.pe-band::before{content:"";position:absolute;inset:0;background:url(https://a.espncdn.com/i/teamlogos/nfl/500/${ab}.png) center/cover no-repeat;filter:grayscale(1) invert(1);opacity:.14;pointer-events:none}` : '')
       + `.pe-band [style*="border-radius:999px"]{background:color-mix(in srgb,${band} 72%,#000)!important}`
       + `@media (max-width:520px){html header.pe-band.pe-band.pe-band{background:linear-gradient(115deg,${band} 87%,${slash} 87% 91%,${band} 91%)}}`;
     el.textContent = bandCss + `:root:root{--color-accent:${c};--color-accent-2:${t[1]};--color-accent-100:${mix(8, '#fff')};--color-accent-200:${mix(16, '#fff')};--color-accent-300:${mix(30, '#fff')};--color-accent-400:${mix(50, '#fff')};--color-accent-500:${mix(75, '#fff')};--color-accent-600:${c};--color-accent-700:${mix(82, '#000')};--color-accent-800:${mix(64, '#000')};--color-accent-900:${mix(46, '#000')}}`;
