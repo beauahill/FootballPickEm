@@ -23,8 +23,10 @@
     [style*="border:1px solid var(--color-divider)"], [style*="border:1px solid var(--color-neutral-300)"] { border-radius:10px; }   /* plain bordered boxes (status, callout rows, forms) */
     /* Dark mode: follows the phone/computer setting. The accent ramp is rebuilt from --color-accent, so team colors work too. */
     :root { color-scheme: light dark; }
+    /* Appearance toggle: data-theme on <html> = light | dark | (none = follow the device) */
+    :root[data-theme="light"] { color-scheme:light; } :root[data-theme="dark"] { color-scheme:dark; }
     @media (prefers-color-scheme: dark) {
-      :root:root:root {
+      :root:root:root:not([data-theme="light"]) {
         --color-accent:color-mix(in srgb, var(--color-accent-600) 70%, #fff);   /* lifted so dark team colors still show on a dark page */
         --color-bg:#121416; --color-surface:#1b1e21; --color-text:#e9eaec; --color-divider:color-mix(in srgb, #e9eaec 16%, transparent); --pe-card:#1a1d20;
         --color-neutral-100:#1d2023; --color-neutral-200:#2a2d31; --color-neutral-300:#3a3e43; --color-neutral-400:#55595f; --color-neutral-500:#767a80;
@@ -34,13 +36,33 @@
         --color-accent-500:color-mix(in srgb, var(--color-accent) 82%, #121416); --color-accent-700:color-mix(in srgb, var(--color-accent) 55%, #fff);
         --color-accent-800:color-mix(in srgb, var(--color-accent) 40%, #fff); --color-accent-900:color-mix(in srgb, var(--color-accent) 28%, #fff);
       }
-      .btn-primary, .btn-primary:hover { color:#121416; }
-      header.pe-band { background:color-mix(in srgb, var(--color-accent-600) 45%, #0b0c0d); }
-      .pe-band .pe-fig b[style*="accent-300"] { color:color-mix(in srgb, var(--color-accent) 40%, #fff) !important; }
-      .pe-band [style*="background-color:var(--color-accent-300)"] { background-color:color-mix(in srgb, var(--color-accent) 45%, #fff) !important; color:#111 !important; }
-      .pe-team:hover { background-color:color-mix(in srgb, var(--color-accent) 14%, transparent); }
-      a { color:var(--color-accent-700); }
+      html:not([data-theme="light"]) .btn-primary, html:not([data-theme="light"]) .btn-primary:hover { color:#121416; }
+      html:not([data-theme="light"]) header.pe-band { background:color-mix(in srgb, var(--color-accent-600) 45%, #0b0c0d); }
+      html:not([data-theme="light"]) .pe-band .pe-fig b[style*="accent-300"] { color:color-mix(in srgb, var(--color-accent) 40%, #fff) !important; }
+      html:not([data-theme="light"]) .pe-band [style*="background-color:var(--color-accent-300)"] { background-color:color-mix(in srgb, var(--color-accent) 45%, #fff) !important; color:#111 !important; }
+      html:not([data-theme="light"]) .pe-team:hover { background-color:color-mix(in srgb, var(--color-accent) 14%, transparent); }
+      html:not([data-theme="light"]) a { color:var(--color-accent-700); }
     }
+    :root:root:root[data-theme="dark"] {
+      --color-accent:color-mix(in srgb, var(--color-accent-600) 70%, #fff);   /* lifted so dark team colors still show on a dark page */
+      --color-bg:#121416; --color-surface:#1b1e21; --color-text:#e9eaec; --color-divider:color-mix(in srgb, #e9eaec 16%, transparent); --pe-card:#1a1d20;
+      --color-neutral-100:#1d2023; --color-neutral-200:#2a2d31; --color-neutral-300:#3a3e43; --color-neutral-400:#55595f; --color-neutral-500:#767a80;
+      --color-neutral-600:#979ba0; --color-neutral-700:#b4b7bb; --color-neutral-800:#d0d2d5; --color-neutral-900:#e6e7e9;
+      --color-accent-100:color-mix(in srgb, var(--color-accent) 18%, #121416); --color-accent-200:color-mix(in srgb, var(--color-accent) 28%, #121416);
+      --color-accent-300:color-mix(in srgb, var(--color-accent) 42%, #121416); --color-accent-400:color-mix(in srgb, var(--color-accent) 62%, #121416);
+      --color-accent-500:color-mix(in srgb, var(--color-accent) 82%, #121416); --color-accent-700:color-mix(in srgb, var(--color-accent) 55%, #fff);
+      --color-accent-800:color-mix(in srgb, var(--color-accent) 40%, #fff); --color-accent-900:color-mix(in srgb, var(--color-accent) 28%, #fff);
+    }
+    html[data-theme="dark"] .btn-primary, html[data-theme="dark"] .btn-primary:hover { color:#121416; }
+    html[data-theme="dark"] header.pe-band { background:color-mix(in srgb, var(--color-accent-600) 45%, #0b0c0d); }
+    html[data-theme="dark"] .pe-band .pe-fig b[style*="accent-300"] { color:color-mix(in srgb, var(--color-accent) 40%, #fff) !important; }
+    html[data-theme="dark"] .pe-band [style*="background-color:var(--color-accent-300)"] { background-color:color-mix(in srgb, var(--color-accent) 45%, #fff) !important; color:#111 !important; }
+    html[data-theme="dark"] .pe-team:hover { background-color:color-mix(in srgb, var(--color-accent) 14%, transparent); }
+    html[data-theme="dark"] a { color:var(--color-accent-700); }
+    .pe-theme { display:inline-flex; gap:2px; padding:3px; border-radius:999px; background:rgba(255,255,255,.12); margin-left:auto; align-self:flex-end; }
+    .pe-theme button { width:36px; height:36px; border:0; border-radius:50%; display:grid; place-items:center; background:none; color:rgba(255,255,255,.8); cursor:pointer; }
+    .pe-theme button.on { background:#fff; color:#15171a; }
+    .pe-theme button:focus-visible { outline:3px solid #fff; outline-offset:1px; }
     /* Admin game rows: one line on wide screens; a two-line scoreboard (away / home) plus kickoff + line on portrait phones */
     .pe-adm { display:grid; gap:8px; align-items:center; grid-template-columns:34px minmax(0,2fr) 64px 64px minmax(0,2fr) 34px minmax(0,1.4fr) 84px 44px; grid-template-areas:"al away as hs home hl when line rm"; }
     .pe-adm-h { padding:0 10px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-700); }
@@ -111,6 +133,7 @@
       <div class="pe-fig"><b style="color:var(--color-accent-300)">{{ potLine }}</b></div>
       <div class="pe-fig">Weekly<b>{{ payWeekly }}</b></div>
       <div class="pe-fig">Season 1st / 2nd / 3rd<b>{{ pay1 }} · {{ pay2 }} · {{ pay3 }}</b></div>
+      <div class="pe-theme" role="group" aria-label="Appearance"><button class="{{ thLightCls }}" onClick="{{ thLight }}" aria-pressed="{{ thLightOn }}" aria-label="Light mode" title="Light"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></button><button class="{{ thAutoCls }}" onClick="{{ thAuto }}" aria-pressed="{{ thAutoOn }}" aria-label="Match device" title="Match device"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"></path></svg></button><button class="{{ thDarkCls }}" onClick="{{ thDark }}" aria-pressed="{{ thDarkOn }}" aria-label="Dark mode" title="Dark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path></svg></button></div>
     </div>
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
@@ -746,7 +769,7 @@ class Component extends DCLogic {
     const settings = { ...PAYOUT_DEFAULTS, ...TEXT_DEFAULTS, ...(store.settings || {}) };
     let session = null; try { session = JSON.parse(localStorage.getItem('pickem.session') || 'null'); } catch (e) {} if (session && !session.email) session = null;
     this.state = { pool: 'nfl', tab: 'picks', me: store.me || players[0], picks: store.picks || {}, tb: store.tb || {}, data: store.data || JSON.parse(JSON.stringify(POOLS)), players, roster, settings, authPools: { nfl: true, cfb: false }, authCode: '', week: null, pastWeek: null, dirty: false, toast: '', pin: '', adminOk: false, pinError: false,
-      session, loading: false, renaming: false, renameVal: '', authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], teamSkip: (() => { try { return localStorage.getItem('pickem.teamAsk') || ''; } catch (e) { return ''; } })(), chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
+      session, loading: false, renaming: false, renameVal: '', authMode: 'login', authName: '', authEmail: '', authPin: '', authError: '', adminPin: '', adminDirty: false, busy: '', challenges: store.challenges || [], themeMode: (() => { try { return localStorage.getItem('pickem.theme') || ''; } catch (e) { return ''; } })(), teamSkip: (() => { try { return localStorage.getItem('pickem.teamAsk') || ''; } catch (e) { return ''; } })(), chTo: '', chAmt: 20, ntTo: 'all', ntSubject: '', ntBody: '', newsSeen: (() => { try { return localStorage.getItem('pickem.news') === NEWS; } catch (e) { return false; } })() };
   }
   get sync() { return !!(this.props.apiUrl || '').trim(); }
   componentDidMount() { if (this.sync) { try { const c = JSON.parse(localStorage.getItem('pickem.live') || 'null'); if (c && c.data && c.url === this.props.apiUrl.trim()) this.applyState(c.j, null, true); } catch (e) {} this.load(); } this.checkVersion(); this.tick = setInterval(() => this.forceUpdate(), 30000); }
@@ -811,10 +834,10 @@ class Component extends DCLogic {
     // Team header: darker team color as the band, the other as the diagonal slash, and the logo as a 10% watermark across the band.
     const lum = h => { const n = parseInt(h.slice(1), 16), f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(n >> 16) + .7152 * f((n >> 8) & 255) + .0722 * f(n & 255); };
     const [band, slash] = lum(t[0]) <= lum(t[1]) ? [t[0], t[1]] : [t[1], t[0]], ab = ESPN_NFL[team];
-    const bandCss = `header.pe-band.pe-band{background:linear-gradient(115deg,${band} 74%,${slash} 74% 77.5%,${band} 77.5%)}`
+    const bandCss = `html header.pe-band.pe-band.pe-band{background:linear-gradient(115deg,${band} 74%,${slash} 74% 77.5%,${band} 77.5%)}`
       + (ab ? `.pe-band::before{content:"";position:absolute;inset:0;background:url(https://a.espncdn.com/i/teamlogos/nfl/500/${ab}.png) center/cover no-repeat;opacity:.1;pointer-events:none}` : '')
       + `.pe-band [style*="border-radius:999px"]{background:color-mix(in srgb,${band} 72%,#000)!important}`
-      + `@media (max-width:520px){header.pe-band.pe-band{background:linear-gradient(115deg,${band} 87%,${slash} 87% 91%,${band} 91%)}}`;
+      + `@media (max-width:520px){html header.pe-band.pe-band.pe-band{background:linear-gradient(115deg,${band} 87%,${slash} 87% 91%,${band} 91%)}}`;
     el.textContent = bandCss + `:root:root{--color-accent:${c};--color-accent-2:${t[1]};--color-accent-100:${mix(8, '#fff')};--color-accent-200:${mix(16, '#fff')};--color-accent-300:${mix(30, '#fff')};--color-accent-400:${mix(50, '#fff')};--color-accent-500:${mix(75, '#fff')};--color-accent-600:${c};--color-accent-700:${mix(82, '#000')};--color-accent-800:${mix(64, '#000')};--color-accent-900:${mix(46, '#000')}}`;
   }
   logoState(url) {
@@ -1158,6 +1181,13 @@ class Component extends DCLogic {
       ...this.rankChartVals(players, finals, me, avOf, cls),
       ...(() => { const a = avOf(me); return { meAvBg: a.avBg, meInitials: a.initials }; })(), hasPhoto: !!(rosterOf(me) || {}).avatar, photoLabel: busy === 'photo' ? 'Saving…' : ((rosterOf(me) || {}).avatar ? 'Change photo' : 'Add photo'),
       uploadPhoto: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) this.savePhoto(f); }, removePhoto: () => this.sendPhoto(''),
+      ...(() => {   // appearance: '' = follow the device, or 'light' / 'dark'
+        const m = this.state.themeMode || '', root = document.documentElement;
+        if ((root.getAttribute('data-theme') || '') !== m) { if (m) root.setAttribute('data-theme', m); else root.removeAttribute('data-theme'); }
+        const set = v => () => { try { v ? localStorage.setItem('pickem.theme', v) : localStorage.removeItem('pickem.theme'); } catch (e) {} this.setState({ themeMode: v }); };
+        return { thLight: set('light'), thAuto: set(''), thDark: set('dark'), thLightOn: m === 'light', thAutoOn: !m, thDarkOn: m === 'dark',
+          thLightCls: m === 'light' ? 'on' : '', thAutoCls: !m ? 'on' : '', thDarkCls: m === 'dark' ? 'on' : '' };
+      })(),
       ...(() => {
         const myTeam = String((rosterOf(me) || {}).team || ''), teamsReady = sync && !!session && roster.some(p => p && 'team' in p);   // an older backend doesn't send teams
         const open = teamsReady && (!!this.state.teamOpen || (!myTeam && this.state.teamSkip !== session.email && !!this.state.hasLive));
