@@ -14,31 +14,72 @@
     body { margin:0; background: var(--color-bg); color: var(--color-text); }
     a { color: var(--color-accent-700); } a:hover { color: var(--color-accent-900); }
     @keyframes toastIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
+    /* Refreshed layout: header band, tab row, game cards with logos */
+    :root { --pe-card:#fff; }
+    .pe-band { background:var(--color-accent-900); color:#fff; margin:-24px -16px 20px; padding:20px 16px 14px; }
+    .pe-fig { display:flex; flex-direction:column; font-size:12px; letter-spacing:.04em; color:rgba(255,255,255,.7); }
+    .pe-fig b { font-family:var(--font-heading); font-weight:600; font-size:22px; line-height:1.1; letter-spacing:0; color:#fff; white-space:nowrap; }
+    .pe-link { background:none; border:0; color:rgba(255,255,255,.85); font:500 14px var(--font-body); padding:6px 8px; min-height:36px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(255,255,255,.35); display:inline-flex; align-items:center; }
+    .pe-link:hover { color:#fff; }
+    .pe-tabs { display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--color-divider); margin:0 -16px 22px; padding:0 8px; }
+    .pe-tabs::-webkit-scrollbar { display:none; }
+    .pe-tab { flex:0 0 auto; background:none; border:0; border-bottom:3px solid transparent; margin-bottom:-1px; color:var(--color-neutral-700); font-family:var(--font-heading); font-weight:600; font-size:18px; padding:12px 14px 9px; min-height:48px; cursor:pointer; }
+    .pe-tab.on { color:var(--color-text); border-bottom-color:var(--color-accent); }
+    .pe-tab:focus-visible, .pe-team:focus-visible, .pe-link:focus-visible { outline:3px solid var(--color-accent); outline-offset:-3px; }
+    .pe-game { border:1px solid var(--color-divider); border-radius:12px; overflow:hidden; }
+    .pe-gm { display:grid; grid-template-columns:minmax(0,1fr) 78px minmax(0,1fr); }
+    .pe-team { position:relative; display:flex; align-items:center; gap:10px; width:100%; min-height:76px; padding:18px 12px 12px; border:0; background:transparent; color:var(--color-text); text-align:left; font:inherit; cursor:pointer; }
+    .pe-team:hover { background-color:var(--color-accent-100); }
+    .pe-home { flex-direction:row-reverse; text-align:right; }
+    .pe-logo { flex:none; width:44px; height:44px; border-radius:10px; display:grid; place-items:center; background-position:center; background-size:82%; background-repeat:no-repeat; font-family:var(--font-heading); font-weight:700; font-size:14px; letter-spacing:.02em; color:#fff; box-shadow:inset 0 0 0 1px rgba(0,0,0,.1); }
+    .pe-nm { min-width:0; display:flex; flex-direction:column; }
+    .pe-nm b { font-family:var(--font-heading); font-weight:600; font-size:20px; line-height:1.05; overflow-wrap:anywhere; }
+    .pe-nm > span { font-size:13px; color:var(--color-neutral-700); }   /* direct child only: bound text is wrapped in its own span */
+    .pe-sc { font-family:var(--font-heading); font-size:26px; margin-left:auto; }
+    .pe-home .pe-sc { margin-left:0; margin-right:auto; }
+    .pe-chip { position:absolute; top:0; left:12px; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; color:#fff; white-space:nowrap; }
+    .pe-home .pe-chip { left:auto; right:12px; }
+    .pe-mid { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; text-align:center; font-size:12px; line-height:1.3; color:var(--color-neutral-700); border-left:1px dashed var(--color-divider); border-right:1px dashed var(--color-divider); padding:6px 2px; }
+    .pe-mid b { font-family:var(--font-heading); font-weight:600; font-size:15px; }
+    .pe-ft { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--color-divider); font-size:13px; }
+    @media (max-width:520px) { .pe-gm { grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr); } .pe-team { padding:18px 8px 10px; gap:8px; } .pe-logo { width:34px; height:34px; font-size:12px; border-radius:8px; } .pe-nm b { font-size:17px; } .pe-sc { font-size:22px; } .pe-fig b { font-size:19px; } }
   </style>
 </helmet>
-<div data-build="mwxxb6hn" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v mwxxb6hn</div>
+<div data-build="mwyl4n2x" style="position:fixed;right:8px;bottom:6px;font-size:10px;letter-spacing:.06em;color:var(--color-neutral-500);pointer-events:none;z-index:5">v mwyl4n2x</div>
 <div style="max-width:1000px;margin:0 auto;padding:24px 16px 80px;font-family:var(--font-body);font-size:16px">
 
-  <header style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
-    <div>
-      <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:4px">{{ seasonLabel }}</div>
-      <h1 style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin:0">{{ leagueName }}</h1>
-      <div style="display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:8px;font-family:var(--font-heading);font-weight:600;font-size:20px;line-height:1.1">
-        <span style="color:var(--color-accent-700)">{{ potLine }}</span>
-        <span><span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);margin-right:6px">Weekly</span>{{ payWeekly }}</span>
-        <span><span style="font-family:var(--font-body);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);margin-right:6px">Season</span>{{ pay1 }} / {{ pay2 }} / {{ pay3 }}</span>
+  <header class="pe-band">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px">
+      <div style="min-width:0">
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7)">{{ seasonLabel }}</div>
+        <h1 style="font-family:var(--font-heading);font-weight:600;font-size:38px;line-height:1;margin:4px 0 0;color:#fff">{{ leagueName }}</h1>
       </div>
+      <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:4px 14px 4px 4px;border-radius:999px;max-width:100%">
+          <span style="flex:none;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background-color:var(--color-accent-300);font-family:var(--font-heading);font-weight:700;font-size:16px;color:var(--color-accent-900);background-position:center;background-size:cover;background-image:{{ meAvBg }}">{{ meInitials }}</span>
+          <span style="font-family:var(--font-heading);font-weight:600;font-size:18px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ me }}</span>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:14px">
+      <div class="pe-fig"><b style="color:var(--color-accent-300)">{{ potLine }}</b></div>
+      <div class="pe-fig">Weekly<b>{{ payWeekly }}</b></div>
+      <div class="pe-fig">Season 1st / 2nd / 3rd<b>{{ pay1 }} · {{ pay2 }} · {{ pay3 }}</b></div>
     </div>
     <sc-if value="{{ showIdentity }}" hint-placeholder-val="{{ true }}">
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-accent-300);background-color:var(--color-accent-100);font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-800)background-position:center;background-size:cover;background-image:{{ meAvBg }}">{{ meInitials }}</span>
-        <div><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Picking as</div><div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1">{{ me }}</div></div>
-        <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}"><label class="btn btn-ghost" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;cursor:pointer">{{ photoLabel }}<input type="file" accept="image/*" onChange="{{ uploadPhoto }}" style="display:none"></label><sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ removePhoto }}" style="min-height:44px;font-size:15px">Remove photo</button></sc-if><sc-if value="{{ teamsReady }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ openTeam }}" style="min-height:44px;font-size:15px">Team colors</button></sc-if><button class="btn btn-ghost" onClick="{{ startRename }}" style="min-height:44px;font-size:15px">Change name</button><button class="btn btn-ghost" onClick="{{ signOut }}" style="min-height:44px;font-size:15px">Sign out</button></sc-if>
-      </div>
+      <sc-if value="{{ isSync }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:2px 6px;margin:10px -8px 0">
+          <label class="pe-link" style="cursor:pointer">{{ photoLabel }}<input type="file" accept="image/*" onChange="{{ uploadPhoto }}" style="display:none"></label>
+          <sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}"><button class="pe-link" onClick="{{ removePhoto }}">Remove photo</button></sc-if>
+          <sc-if value="{{ teamsReady }}" hint-placeholder-val="{{ false }}"><button class="pe-link" onClick="{{ openTeam }}">Team colors</button></sc-if>
+          <button class="pe-link" onClick="{{ startRename }}">Change name</button>
+          <button class="pe-link" onClick="{{ signOut }}">Sign out</button>
+        </div>
+      </sc-if>
     </sc-if>
     <sc-if value="{{ adminPicker }}" hint-placeholder-val="{{ false }}">
-    <label style="display:flex;flex-direction:column;gap:4px;min-width:220px">
-      <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Admin: picking for</span>
+    <label style="display:flex;flex-direction:column;gap:4px;max-width:280px;margin-top:12px">
+      <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)">Admin: picking for</span>
       <select class="input" value="{{ me }}" onChange="{{ setMe }}" style="font-size:18px;min-height:48px;font-family:var(--font-heading);font-weight:600">
         <sc-for list="{{ players }}" as="p" hint-placeholder-count="3"><option value="{{ p }}">{{ p }}</option></sc-for>
       </select>
@@ -96,54 +137,54 @@
   <sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
 
 
-  <nav style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:28px">
-    <button class="btn {{ tabPicksCls }}" onClick="{{ goPicks }}" style="min-height:48px;font-size:17px">Make Picks</button>
-    <button class="btn {{ tabStandCls }}" onClick="{{ goStand }}" style="min-height:48px;font-size:17px">Standings</button>
-    <button class="btn {{ tabPayCls }}" onClick="{{ goPay }}" style="min-height:48px;font-size:17px">Payments</button>
-    <button class="btn {{ tabPastCls }}" onClick="{{ goPast }}" style="min-height:48px;font-size:17px">Past Weeks</button>
-    <button class="btn {{ tabAdminCls }}" onClick="{{ goAdmin }}" style="min-height:48px;font-size:17px">Admin</button>
+  <nav class="pe-tabs" aria-label="Sections">
+    <button class="pe-tab {{ tabPicksOn }}" onClick="{{ goPicks }}">Make Picks</button>
+    <button class="pe-tab {{ tabStandOn }}" onClick="{{ goStand }}">Standings</button>
+    <button class="pe-tab {{ tabPayOn }}" onClick="{{ goPay }}">Payments</button>
+    <button class="pe-tab {{ tabPastOn }}" onClick="{{ goPast }}">Past Weeks</button>
+    <button class="pe-tab {{ tabAdminOn }}" onClick="{{ goAdmin }}">Admin</button>
   </nav>
 
   <sc-if value="{{ isPicks }}" hint-placeholder-val="{{ true }}">
     <section data-screen-label="Make Picks">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:8px">
-          <button class="btn btn-secondary btn-icon" onClick="{{ prevWeek }}" disabled="{{ noPrev }}" aria-label="Previous week" style="width:44px;height:44px;font-size:20px">‹</button>
-          <h2 style="font-family:var(--font-heading);font-weight:600;font-size:34px;margin:0;min-width:130px;text-align:center">Week {{ weekNum }}</h2>
-          <button class="btn btn-secondary btn-icon" onClick="{{ nextWeek }}" disabled="{{ noNext }}" aria-label="Next week" style="width:44px;height:44px;font-size:20px">›</button>
+          <button class="btn btn-secondary btn-icon" onClick="{{ prevWeek }}" disabled="{{ noPrev }}" aria-label="Previous week" style="width:42px;height:42px;font-size:20px">‹</button>
+          <h2 style="font-family:var(--font-heading);font-weight:600;font-size:32px;margin:0;min-width:120px;text-align:center">Week {{ weekNum }}</h2>
+          <button class="btn btn-secondary btn-icon" onClick="{{ nextWeek }}" disabled="{{ noNext }}" aria-label="Next week" style="width:42px;height:42px;font-size:20px">›</button>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-          <div style="font-family:var(--font-heading);font-weight:600;font-size:20px;color:var(--color-accent-700)">{{ progressText }}</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:{{ countdownColor }}"><span style="display:{{ lockIconDisplay }};width:8px;height:8px;background:{{ countdownColor }}"></span><span>{{ countdownText }}</span></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span aria-hidden="true" style="flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--color-accent) {{ progressPct }}%, var(--color-neutral-200) 0)"><span style="width:32px;height:32px;border-radius:50%;background:var(--color-bg)"></span></span>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:20px;line-height:1.1">{{ progressText }}</div>
         </div>
       </div>
-      <div style="height:6px;background:var(--color-neutral-200);margin-bottom:10px"><div style="height:100%;background:var(--color-accent);width:{{ progressPct }}%"></div></div>
-      <p style="margin:0 0 20px;font-size:16px;color:var(--color-neutral-700)">{{ picksHint }}</p>
+      <div style="display:{{ lockPillDisplay }};align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:var(--color-accent-100);font-size:14px;font-weight:500;color:{{ countdownColor }};margin-bottom:10px"><span style="display:{{ lockIconDisplay }};width:8px;height:8px;border-radius:50%;background:{{ countdownColor }}"></span><span>{{ countdownText }}</span></div>
+      <p style="margin:0 0 14px;font-size:16px;color:var(--color-neutral-700)">{{ picksHint }}</p>
 
-      <div style="display:grid;gap:14px">
+      <div style="display:grid;gap:10px">
         <sc-for list="{{ games }}" as="g" hint-placeholder-count="4">
-          <div class="blueprint" style="padding:12px;display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);gap:8px;align-items:stretch;box-shadow:inset 4px 0 0 {{ g.edge }};background:{{ g.cardBg }}">
-            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-            <button class="btn {{ g.awayCls }}" onClick="{{ g.pickAway }}" aria-disabled="{{ g.locked }}" style="pointer-events:{{ g.pe }};background:{{ g.awayBg }};border-color:{{ g.awayBd }};color:{{ g.awayFg }};opacity:{{ g.awayOp }};outline:{{ g.awayOutline }};outline-offset:2px;min-height:72px;flex-direction:column;gap:2px;padding:8px;font-size:22px;line-height:1.05;position:relative">
-              <span style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);display:{{ g.awayChipDisplay }};font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;background:{{ g.awayChipBg }};color:#fff;white-space:nowrap">{{ g.awayChip }}</span>
-              <span style="text-decoration:{{ g.awayDeco }}">{{ g.away }}</span>
-              <span style="font-family:var(--font-body);font-weight:{{ g.awayScoreWt }};font-size:{{ g.scoreSize }};letter-spacing:.08em;text-transform:uppercase;opacity:.85">{{ g.awayScore }}</span>
-              <span style="font-size:15px;font-weight:600;letter-spacing:.02em;opacity:.9">{{ g.awayLine }}</span>
-            </button>
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px;line-height:1.3;color:var(--color-neutral-700)">
-              <span style="font-family:var(--font-heading);font-weight:600;font-size:15px;color:{{ g.midColor }}">{{ g.mid }}</span>
-              <span>{{ g.when }}</span>
-              <span style="margin-top:2px;font-family:var(--font-heading);font-weight:600;font-size:12px;letter-spacing:.06em;color:{{ g.midColor }}">{{ g.countdown }}</span>
-            </div>
-            <button class="btn {{ g.homeCls }}" onClick="{{ g.pickHome }}" aria-disabled="{{ g.locked }}" style="pointer-events:{{ g.pe }};background:{{ g.homeBg }};border-color:{{ g.homeBd }};color:{{ g.homeFg }};opacity:{{ g.homeOp }};outline:{{ g.homeOutline }};outline-offset:2px;min-height:72px;flex-direction:column;gap:2px;padding:8px;font-size:22px;line-height:1.05;position:relative">
-              <span style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);display:{{ g.homeChipDisplay }};font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;background:{{ g.homeChipBg }};color:#fff;white-space:nowrap">{{ g.homeChip }}</span>
-              <span style="text-decoration:{{ g.homeDeco }}">{{ g.home }}</span>
-              <span style="font-family:var(--font-body);font-weight:{{ g.homeScoreWt }};font-size:{{ g.scoreSize }};letter-spacing:.08em;text-transform:uppercase;opacity:.85">{{ g.homeScore }}</span>
-              <span style="font-size:15px;font-weight:600;letter-spacing:.02em;opacity:.9">{{ g.homeLine }}</span>
-            </button>
-            <div style="grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:{{ g.resultColor }}">
-              <span style="display:flex;align-items:center;gap:8px"><span style="display:{{ g.verdictDisplay }};font-family:var(--font-heading);font-weight:700;font-size:13px;letter-spacing:.1em;padding:3px 8px;background:{{ g.edge }};color:#fff">{{ g.verdict }}</span><span>{{ g.resultText }}</span></span>
-              <span style="color:var(--color-neutral-600);text-align:right">{{ g.poolText }}</span>
+          <div style="display:grid;gap:6px">
+            <div style="display:{{ g.dayDisplay }};font-family:var(--font-heading);font-weight:600;font-size:16px;letter-spacing:.02em;color:var(--color-neutral-700);margin-top:8px">{{ g.dayLabel }}</div>
+            <div class="pe-game" style="box-shadow:inset 4px 0 0 {{ g.edge }};background:{{ g.cardFill }}">
+              <div class="pe-gm">
+                <button class="pe-team" onClick="{{ g.pickAway }}" aria-disabled="{{ g.locked }}" aria-pressed="{{ g.awayOn }}" style="pointer-events:{{ g.pe }};background:{{ g.awayFill }};box-shadow:{{ g.awayRing }};opacity:{{ g.awayOp }};outline:{{ g.awayOutline }};outline-offset:-3px">
+                  <span class="pe-chip" style="display:{{ g.awayChipDisplay }};background:{{ g.awayChipBg }}">{{ g.awayChip }}</span>
+                  <span class="pe-logo" style="background-color:{{ g.awayLogoBg }};background-image:{{ g.awayLogo }}">{{ g.awayIni }}</span>
+                  <span class="pe-nm"><b style="text-decoration:{{ g.awayDeco }}">{{ g.away }}</b><span>{{ g.awaySub }}</span></span>
+                  <span class="pe-sc" style="display:{{ g.scoreDisplay }};font-weight:{{ g.awayScoreWt }}">{{ g.awayPts }}</span>
+                </button>
+                <div class="pe-mid"><b style="color:{{ g.midColor }}">{{ g.mid }}</b><span>{{ g.when }}</span><span style="font-family:var(--font-heading);font-weight:600;color:{{ g.midColor }}">{{ g.countdown }}</span></div>
+                <button class="pe-team pe-home" onClick="{{ g.pickHome }}" aria-disabled="{{ g.locked }}" aria-pressed="{{ g.homeOn }}" style="pointer-events:{{ g.pe }};background:{{ g.homeFill }};box-shadow:{{ g.homeRing }};opacity:{{ g.homeOp }};outline:{{ g.homeOutline }};outline-offset:-3px">
+                  <span class="pe-chip" style="display:{{ g.homeChipDisplay }};background:{{ g.homeChipBg }}">{{ g.homeChip }}</span>
+                  <span class="pe-logo" style="background-color:{{ g.homeLogoBg }};background-image:{{ g.homeLogo }}">{{ g.homeIni }}</span>
+                  <span class="pe-nm"><b style="text-decoration:{{ g.homeDeco }}">{{ g.home }}</b><span>{{ g.homeSub }}</span></span>
+                  <span class="pe-sc" style="display:{{ g.scoreDisplay }};font-weight:{{ g.homeScoreWt }}">{{ g.homePts }}</span>
+                </button>
+              </div>
+              <div class="pe-ft" style="color:{{ g.resultColor }}">
+                <span style="display:flex;align-items:center;gap:8px;min-width:0"><span style="display:{{ g.verdictDisplay }};font-family:var(--font-heading);font-weight:700;font-size:13px;letter-spacing:.08em;padding:2px 8px;border-radius:6px;background:{{ g.edge }};color:#fff">{{ g.verdict }}</span><span>{{ g.resultText }}</span></span>
+                <span style="color:var(--color-neutral-600);text-align:right">{{ g.poolText }}</span>
+              </div>
             </div>
           </div>
         </sc-for>
@@ -626,8 +667,13 @@ const NFL_TEAMS = { Cardinals: ['#97233F', '#FFB612', 'Arizona Cardinals'], Falc
   Vikings: ['#4F2683', '#FFC62F', 'Minnesota Vikings'], Patriots: ['#002244', '#C60C30', 'New England Patriots'], Saints: ['#7A6A3F', '#101820', 'New Orleans Saints'], Giants: ['#0B2265', '#A71930', 'New York Giants'],
   Jets: ['#125740', '#000000', 'New York Jets'], Eagles: ['#004C54', '#A5ACAF', 'Philadelphia Eagles'], Steelers: ['#101820', '#FFB612', 'Pittsburgh Steelers'], '49ers': ['#AA0000', '#B3995D', 'San Francisco 49ers'],
   Seahawks: ['#002244', '#69BE28', 'Seattle Seahawks'], Buccaneers: ['#C8102E', '#34302B', 'Tampa Bay Buccaneers'], Titans: ['#0C2340', '#4B92DB', 'Tennessee Titans'], Commanders: ['#5A1414', '#FFB612', 'Washington Commanders'] };
+// ESPN logo abbreviations for every NFL nickname (logos load from ESPN's CDN; anything else gets a colored initials tile).
+const ESPN_NFL = { Cardinals: 'ari', Falcons: 'atl', Ravens: 'bal', Bills: 'buf', Panthers: 'car', Bears: 'chi', Bengals: 'cin', Browns: 'cle', Cowboys: 'dal', Broncos: 'den', Lions: 'det', Packers: 'gb',
+  Texans: 'hou', Colts: 'ind', Jaguars: 'jax', Chiefs: 'kc', Raiders: 'lv', Chargers: 'lac', Rams: 'lar', Dolphins: 'mia', Vikings: 'min', Patriots: 'ne', Saints: 'no', Giants: 'nyg',
+  Jets: 'nyj', Eagles: 'phi', Steelers: 'pit', '49ers': 'sf', Seahawks: 'sea', Buccaneers: 'tb', Titans: 'ten', Commanders: 'wsh' };
+const initialsOf = t => { const s = String(t || '').trim(), ab = ESPN_NFL[s]; if (ab) return ab.toUpperCase(); const w = s.split(/\s+/).filter(Boolean); return (w.length > 1 ? w.map(x => x[0]).join('') : s.slice(0, 3)).slice(0, 3).toUpperCase(); };
 const NFL_TEAM_LIST = Object.entries(NFL_TEAMS).map(([id, t]) => ({ id, label: id, full: t[2], c1: t[0], c2: t[1] })).sort((a, b) => a.label.localeCompare(b.label));
-const KEY = 'pickem.wyo.v1', BUILD = 'mwxxb6hn', NEWS = '2026-09-09';
+const KEY = 'pickem.wyo.v1', BUILD = 'mwyl4n2x', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
 // Data URLs contain ';' which the inline-style parser splits on — expose photos as cached blob: URLs instead.
@@ -715,6 +761,27 @@ class Component extends DCLogic {
     const t = NFL_TEAMS[team]; if (!t) { el.textContent = ''; return; }
     const c = t[0], mix = (p, w) => `color-mix(in srgb, ${c} ${p}%, ${w})`;
     el.textContent = `:root:root{--color-accent:${c};--color-accent-2:${t[1]};--color-accent-100:${mix(8, '#fff')};--color-accent-200:${mix(16, '#fff')};--color-accent-300:${mix(30, '#fff')};--color-accent-400:${mix(50, '#fff')};--color-accent-500:${mix(75, '#fff')};--color-accent-600:${c};--color-accent-700:${mix(82, '#000')};--color-accent-800:${mix(64, '#000')};--color-accent-900:${mix(46, '#000')}}`;
+  }
+  logoState(url) {
+    const L = this._logos || (this._logos = {}); if (L[url]) return L[url];
+    L[url] = 'loading'; const im = new Image();
+    im.onload = () => { L[url] = 'ok'; clearTimeout(this._logoT); this._logoT = setTimeout(() => this.forceUpdate(), 60); };
+    im.onerror = () => { L[url] = 'err'; }; im.src = url; return 'loading';
+  }
+  teamTile(side, team) {
+    const ab = ESPN_NFL[String(team || '').trim()], url = ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab}.png` : '', ok = !!url && this.logoState(url) === 'ok';
+    return { [side + 'Logo']: ok ? `url(${url})` : 'none', [side + 'LogoBg']: ok ? '#fff' : teamColor(team), [side + 'Ini']: ok ? '' : initialsOf(team) };
+  }
+  // Display order: by kickoff, with a day heading on the first game of each day.
+  dayGroup(games) {
+    const DAYS = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
+    const t = g => g.kick ? new Date(g.kick).getTime() : Infinity;
+    const day = g => g.kick ? new Date(g.kick).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : (DAYS[String(g.when || '').slice(0, 3)] || '');
+    let prev = null;
+    return games.map((g, i) => ({ g, i })).sort((a, b) => (t(a.g) - t(b.g)) || (a.i - b.i)).map(({ g }) => {
+      const d = day(g), first = d !== prev; prev = d;
+      return { ...g, dayLabel: first ? d : '', dayDisplay: first && d ? 'block' : 'none', cardFill: g.cardBg === 'transparent' ? 'var(--pe-card)' : g.cardBg };
+    });
   }
   saveTeam(team) {
     const s = this.state.session; if (!s) return; this.setState({ busy: 'team' });
@@ -914,6 +981,12 @@ class Component extends DCLogic {
         countdown: msLeft == null ? (locked ? '' : live ? 'locked' : '') : (msLeft < 3600e3 ? T('locks in ' + fmtLeft(msLeft) + '!', 'locks in ' + fmtLeft(msLeft)) : 'locks in ' + fmtLeft(msLeft)), midColor: live || locked ? 'var(--color-neutral-600)' : (msLeft != null && msLeft < 3600e3 ? '#b42318' : 'var(--color-text)'),
         awayScore: locked ? String(g.as) : 'Away', homeScore: locked ? String(g.hs) : 'Home',
         awayCls: cls(mine === g.away), homeCls: cls(mine === g.home),
+        ...this.teamTile('away', g.away), ...this.teamTile('home', g.home), awayOn: mine === g.away, homeOn: mine === g.home,
+        awayFill: mine === g.away ? 'var(--color-accent-100)' : 'transparent', homeFill: mine === g.home ? 'var(--color-accent-100)' : 'transparent',
+        awayRing: mine === g.away && !locked && !live ? 'inset 0 0 0 2px var(--color-accent)' : 'none', homeRing: mine === g.home && !locked && !live ? 'inset 0 0 0 2px var(--color-accent)' : 'none',
+        awaySub: [mine === g.away && !locked ? 'Your pick' : locked ? '' : 'Away', ln == null ? '' : fmt(-ln)].filter(Boolean).join(' · '),
+        homeSub: [mine === g.home && !locked ? 'Your pick' : locked ? '' : 'Home', ln == null ? '' : fmt(ln)].filter(Boolean).join(' · '),
+        scoreDisplay: locked ? 'block' : 'none', awayPts: locked ? String(g.as) : '', homePts: locked ? String(g.hs) : '',
         awayBg: mine === g.away ? teamColor(g.away) : 'transparent', awayFg: mine === g.away ? '#ffffff' : 'var(--color-text)', awayBd: mine === g.away ? teamColor(g.away) : 'var(--color-divider)',
         homeBg: mine === g.home ? teamColor(g.home) : 'transparent', homeFg: mine === g.home ? '#ffffff' : 'var(--color-text)', homeBd: mine === g.home ? teamColor(g.home) : 'var(--color-divider)',
         awayOp: sa.op, awayOutline: sa.outline, awayDeco: sa.deco, awayChip: sa.chip, awayChipBg: sa.chipBg, awayChipDisplay: sa.chip ? 'inline-block' : 'none', awayScoreWt: sa.scoreWt,
@@ -1050,7 +1123,8 @@ class Component extends DCLogic {
       sendChallenge: () => { const amt = Number(chAmt); if (!chTo || !(amt > 0)) { this.showToast('Pick a player and an amount.'); return; }
         this.challenge({ id: 'c' + Date.now().toString(36), pool, week: week.n, from: me, to: chTo, amount: amt, status: 'pending', created: new Date().toISOString() }, T(pick(chTo + Date.now(), TT.calledOut(chTo)), `Challenge sent to ${chTo}.`)); },
       weekNum: week.n, prevWeek: () => this.setState({ week: wi - 1 }), nextWeek: () => this.setState({ week: wi + 1 }), noPrev: wi === 0, noNext: wi === weeks.length - 1,
-      games, weekOpen: !weekClosed, weekLocked: weekClosed,
+      games: this.dayGroup(games), weekOpen: !weekClosed, weekLocked: weekClosed, lockPillDisplay: countdownText ? 'inline-flex' : 'none',
+      tabPicksOn: tab === 'picks' ? 'on' : '', tabStandOn: tab === 'stand' ? 'on' : '', tabPayOn: tab === 'pay' ? 'on' : '', tabPastOn: tab === 'past' ? 'on' : '', tabAdminOn: tab === 'admin' ? 'on' : '',
       countdownText, countdownColor, lockIconDisplay: allStarted || weekFinal ? 'none' : 'inline-block',
       progressText: weekFinal ? `You went ${myW}-${myL}` : `${made} of ${total} picked`, progressPct: weekFinal ? 100 : (total ? Math.round(made / total * 100) : 0),
       picksHint: weekFinal ? T(pick('done' + week.n, TT.done), 'This week is final.') : allStarted ? T(pick('as' + week.n, TT.allStarted), 'All games have started. Picks are locked.') : T(pick('hint' + week.n, TT.startHint), 'Tap the team you think will win. Picks lock at each kickoff.'),

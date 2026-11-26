@@ -14,7 +14,12 @@ def load_template(html):
 
 # The bundle stores camelCase markup attributes as sc-camel-kebab (onClick -> sc-camel-on-click).
 CAMEL = re.compile(r' (onClick|onChange|onSubmit|onBlur|autoComplete|defaultValue|inputMode)="')
-def bundled(s): return CAMEL.sub(lambda m: ' sc-camel-' + re.sub(r'[A-Z]', lambda c: '-' + c.group().lower(), m.group(1)) + '="', s)
+# It also renames <select> and table tags to <sc-raw-*> so the browser's HTML parser keeps template tags inside them
+# (a plain <select> in the bundle loses its <sc-for> options in Safari).
+RAW = re.compile(r'<(/?)(select|table|thead|tbody|tr|td|th)(?=[\s>])')
+def bundled(s):
+    s = CAMEL.sub(lambda m: ' sc-camel-' + re.sub(r'[A-Z]', lambda c: '-' + c.group().lower(), m.group(1)) + '="', s)
+    return RAW.sub(lambda m: '<' + m.group(1) + 'sc-raw-' + m.group(2), s)
 
 def apply(text, edits, label, xform=lambda s: s):
     for old, new in edits:
