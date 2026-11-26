@@ -41,6 +41,17 @@
       .pe-team:hover { background-color:color-mix(in srgb, var(--color-accent) 14%, transparent); }
       a { color:var(--color-accent-700); }
     }
+    /* Admin game rows: one line on wide screens; a two-line scoreboard (away / home) plus kickoff + line on portrait phones */
+    .pe-adm { display:grid; gap:8px; align-items:center; grid-template-columns:34px minmax(0,2fr) 64px 64px minmax(0,2fr) 34px minmax(0,1.4fr) 84px 44px; grid-template-areas:"al away as hs home hl when line rm"; }
+    .pe-adm-h { padding:0 10px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-700); }
+    .pe-adm > .al { grid-area:al; } .pe-adm > .away { grid-area:away; } .pe-adm > .as { grid-area:as; } .pe-adm > .hs { grid-area:hs; } .pe-adm > .home { grid-area:home; }
+    .pe-adm > .hl { grid-area:hl; } .pe-adm > .when { grid-area:when; } .pe-adm > .line { grid-area:line; } .pe-adm > .rm { grid-area:rm; }
+    .pe-adm-logo { width:34px; height:34px; border-radius:8px; display:grid; place-items:center; background-position:center; background-size:82%; background-repeat:no-repeat; font-family:var(--font-heading); font-weight:700; font-size:12px; color:#fff; }
+    @media (max-width:640px) {
+      .pe-adm { grid-template-columns:34px minmax(0,1fr) 72px 44px; grid-template-areas:"al away as rm" "hl home hs rm" "when when line line"; }
+      .pe-adm > .rm { align-self:start; }
+      .pe-adm-h { display:none !important; }
+    }
     /* Refreshed layout: header band, tab row, game cards with logos */
     :root { --pe-card:#fff; }
     .pe-band { position:relative; overflow:hidden; background:var(--color-accent-900); color:#fff; margin:-24px -16px 20px; padding:20px 16px 14px; }
@@ -559,19 +570,21 @@
           <p style="margin:0 0 16px;font-size:14px;color:var(--color-neutral-700)">Demo mode — data stays on this device. Connect the Google Sheet (see SETUP.md) to share the league with everyone.</p>
         </sc-if>
         <div style="display:grid;gap:12px">
-          <div style="display:grid;grid-template-columns:minmax(0,2fr) 76px 76px minmax(0,2fr) minmax(0,1.4fr) 90px 44px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700);padding:0 4px">
-            <span>Away team</span><span>Away</span><span>Home</span><span>Home team</span><span>Kickoff</span><span>Home line</span><span></span>
+          <div class="pe-adm pe-adm-h">
+            <span class="away" style="grid-column:1 / 3">Away team</span><span class="as">Away</span><span class="hs">Home</span><span class="home" style="grid-column:5 / 7">Home team</span><span class="when">Kickoff</span><span class="line">Home line</span>
           </div>
           <sc-for list="{{ adminGames }}" as="g" hint-placeholder-count="4">
-            <div class="blueprint" style="padding:10px;display:grid;grid-template-columns:minmax(0,2fr) 76px 76px minmax(0,2fr) minmax(0,1.4fr) 90px 44px;gap:8px;align-items:center">
+            <div class="blueprint pe-adm" style="padding:10px">
               <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-              <input class="input" value="{{ g.away }}" onChange="{{ g.setAway }}" placeholder="Away team" style="min-height:44px;font-size:16px">
-              <input class="input" type="number" inputMode="numeric" min="0" value="{{ g.asVal }}" onChange="{{ g.setAs }}" placeholder="—" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
-              <input class="input" type="number" inputMode="numeric" min="0" value="{{ g.hsVal }}" onChange="{{ g.setHs }}" placeholder="—" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
-              <input class="input" value="{{ g.home }}" onChange="{{ g.setHome }}" placeholder="Home team" style="min-height:44px;font-size:16px">
-              <input class="input" value="{{ g.when }}" onChange="{{ g.setWhen }}" placeholder="Sun 12:00 PM" style="min-height:44px;font-size:15px">
-              <input class="input" type="number" step="0.5" value="{{ g.spreadVal }}" onChange="{{ g.setSpread }}" placeholder="—" style="min-height:44px;font-size:15px;text-align:center">
-              <button class="btn btn-secondary btn-icon" onClick="{{ g.remove }}" aria-label="Remove game" style="width:44px;height:44px;font-size:20px">×</button>
+              <span class="pe-adm-logo al" aria-hidden="true" style="background-image:{{ g.awayLogo }};background-color:{{ g.awayLogoBg }}">{{ g.awayIni }}</span>
+              <input class="input away" value="{{ g.away }}" onChange="{{ g.setAway }}" placeholder="Away team" aria-label="Away team" style="min-height:44px;font-size:16px">
+              <input class="input as" type="number" inputMode="numeric" min="0" value="{{ g.asVal }}" onChange="{{ g.setAs }}" placeholder="—" aria-label="Away score" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
+              <input class="input hs" type="number" inputMode="numeric" min="0" value="{{ g.hsVal }}" onChange="{{ g.setHs }}" placeholder="—" aria-label="Home score" style="min-height:44px;font-size:18px;text-align:center;font-family:var(--font-heading);font-weight:600">
+              <input class="input home" value="{{ g.home }}" onChange="{{ g.setHome }}" placeholder="Home team" aria-label="Home team" style="min-height:44px;font-size:16px">
+              <span class="pe-adm-logo hl" aria-hidden="true" style="background-image:{{ g.homeLogo }};background-color:{{ g.homeLogoBg }}">{{ g.homeIni }}</span>
+              <input class="input when" value="{{ g.when }}" onChange="{{ g.setWhen }}" placeholder="Kickoff, e.g. Sun 12:00 PM" aria-label="Kickoff" style="min-height:44px;font-size:15px">
+              <input class="input line" type="number" step="0.5" value="{{ g.spreadVal }}" onChange="{{ g.setSpread }}" placeholder="Line" aria-label="Home line" style="min-height:44px;font-size:15px;text-align:center">
+              <button class="btn btn-secondary btn-icon rm" onClick="{{ g.remove }}" aria-label="Remove game" style="width:44px;height:44px;font-size:20px">×</button>
             </div>
           </sc-for>
           <button class="btn btn-secondary" onClick="{{ addGame }}" style="min-height:52px;font-size:20px">+ Add game to Week {{ weekNum }}</button>
@@ -1042,7 +1055,7 @@ class Component extends DCLogic {
     const [myW, myL] = weekFinal ? this.record(me, week) : [0, 0];
     const lastG = week.games[total - 1];
     const upd = (id, k) => e => this.mutate(d => { const g = d[pool].weeks[wi].games.find(x => x.id === id); if (g) g[k] = (k === 'as' || k === 'hs' || k === 'spread') ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value; });
-    const adminGames = week.games.map(g => ({ ...g, asVal: g.as ?? '', hsVal: g.hs ?? '', setAway: upd(g.id, 'away'), setHome: upd(g.id, 'home'), setWhen: upd(g.id, 'when'), setAs: upd(g.id, 'as'), setHs: upd(g.id, 'hs'), setSpread: upd(g.id, 'spread'), spreadVal: g.spread ?? '',
+    const adminGames = week.games.map(g => ({ ...g, ...this.teamTile('away', g.away), ...this.teamTile('home', g.home), asVal: g.as ?? '', hsVal: g.hs ?? '', setAway: upd(g.id, 'away'), setHome: upd(g.id, 'home'), setWhen: upd(g.id, 'when'), setAs: upd(g.id, 'as'), setHs: upd(g.id, 'hs'), setSpread: upd(g.id, 'spread'), spreadVal: g.spread ?? '',
       remove: () => { if (confirm(`Remove ${g.away} at ${g.home}?`)) this.mutate(d => { const w = d[pool].weeks[wi]; w.games = w.games.filter(x => x.id !== g.id); }); } }));
     // pick status for the week on screen
     const kicks = week.games.filter(g => !started(g) && g.kick).map(g => new Date(g.kick).getTime()).sort((a, b) => a - b);
