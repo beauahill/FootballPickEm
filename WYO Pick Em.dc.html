@@ -56,8 +56,10 @@
   <sc-if value="{{ teamAsk }}" hint-placeholder-val="{{ false }}">
     <div class="blueprint" data-screen-label="Pick your team" style="position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;padding:16px;margin:-8px 0 20px;border-left:4px solid var(--color-accent)"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
       <div style="flex:1 1 260px"><div style="font-family:var(--font-heading);font-weight:600;font-size:24px;line-height:1.1">{{ teamAskTitle }}</div><div style="font-size:15px;color:var(--color-neutral-700);margin-top:4px">The app wears your team's colors. Only you see them, and you can change it anytime under Team colors.</div></div>
-      <label style="display:flex;flex-direction:column;gap:4px;flex:1 1 220px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Favorite team</span>
-        <select class="input" value="{{ teamPick }}" onChange="{{ setTeamPick }}" style="min-height:44px;font-size:16px"><option value="">No team (neutral)</option><sc-for list="{{ nflTeams }}" as="t" hint-placeholder-count="4"><option value="{{ t.id }}">{{ t.label }}</option></sc-for></select></label>
+      <div role="group" aria-label="Favorite team" style="flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px">
+        <button class="btn {{ teamNoneCls }}" onClick="{{ pickNoTeam }}" aria-pressed="{{ teamNoneOn }}" style="min-height:44px;font-size:15px;padding:0 10px">No team</button>
+        <sc-for list="{{ nflTeams }}" as="t" hint-placeholder-count="4"><button class="btn {{ t.cls }}" onClick="{{ t.choose }}" aria-pressed="{{ t.on }}" title="{{ t.full }}" style="min-height:44px;font-size:15px;padding:0 10px;justify-content:flex-start;gap:8px"><span style="flex:none;width:12px;height:12px;background:{{ t.c1 }};box-shadow:3px 3px 0 {{ t.c2 }}"></span>{{ t.label }}</button></sc-for>
+      </div>
       <button class="btn btn-primary" onClick="{{ saveTeamPick }}" disabled="{{ busyAny }}" style="min-height:44px;font-size:16px">{{ teamSaveLabel }}</button>
       <button class="btn btn-ghost" onClick="{{ skipTeam }}" style="min-height:44px;font-size:16px">{{ teamSkipLabel }}</button>
     </div>
@@ -624,7 +626,7 @@ const NFL_TEAMS = { Cardinals: ['#97233F', '#FFB612', 'Arizona Cardinals'], Falc
   Vikings: ['#4F2683', '#FFC62F', 'Minnesota Vikings'], Patriots: ['#002244', '#C60C30', 'New England Patriots'], Saints: ['#7A6A3F', '#101820', 'New Orleans Saints'], Giants: ['#0B2265', '#A71930', 'New York Giants'],
   Jets: ['#125740', '#000000', 'New York Jets'], Eagles: ['#004C54', '#A5ACAF', 'Philadelphia Eagles'], Steelers: ['#101820', '#FFB612', 'Pittsburgh Steelers'], '49ers': ['#AA0000', '#B3995D', 'San Francisco 49ers'],
   Seahawks: ['#002244', '#69BE28', 'Seattle Seahawks'], Buccaneers: ['#C8102E', '#34302B', 'Tampa Bay Buccaneers'], Titans: ['#0C2340', '#4B92DB', 'Tennessee Titans'], Commanders: ['#5A1414', '#FFB612', 'Washington Commanders'] };
-const NFL_TEAM_LIST = Object.entries(NFL_TEAMS).map(([id, t]) => ({ id, label: t[2] })).sort((a, b) => a.label.localeCompare(b.label));
+const NFL_TEAM_LIST = Object.entries(NFL_TEAMS).map(([id, t]) => ({ id, label: id, full: t[2], c1: t[0], c2: t[1] })).sort((a, b) => a.label.localeCompare(b.label));
 const KEY = 'pickem.wyo.v1', BUILD = 'mwxxb6hn', NEWS = '2026-09-09';
 const PAYOUT_DEFAULTS = { entryFee: 100, weeklyShare: 50, weeksNfl: 18, weeksCfb: 14, pct1: 70, pct2: 20, pct3: 10 };
 const TEXT_DEFAULTS = { venmo: 'Beau-AD-Hill', accessCode: '' };
@@ -1033,7 +1035,10 @@ class Component extends DCLogic {
         const open = teamsReady && (!!this.state.teamOpen || (!myTeam && this.state.teamSkip !== session.email && !!this.state.hasLive));
         const pickT = this.state.teamPick !== undefined ? this.state.teamPick : myTeam;
         this.themeTo(open ? pickT : myTeam);
-        return { teamsReady, teamAsk: open, teamAskTitle: myTeam ? 'Team colors' : 'Pick your team', nflTeams: NFL_TEAM_LIST, teamPick: pickT,
+        // Team buttons, not a <select>: Safari drops template tags inside <select>, which left only "No team" in the list.
+        return { teamsReady, teamAsk: open, teamAskTitle: myTeam ? 'Team colors' : 'Pick your team', teamPick: pickT,
+          nflTeams: NFL_TEAM_LIST.map(t => ({ ...t, on: pickT === t.id, cls: pickT === t.id ? 'btn-primary' : 'btn-secondary', choose: () => this.setState({ teamPick: t.id }) })),
+          teamNoneOn: !pickT, teamNoneCls: !pickT ? 'btn-primary' : 'btn-secondary', pickNoTeam: () => this.setState({ teamPick: '' }),
           setTeamPick: e => this.setState({ teamPick: e.target.value }), openTeam: () => this.setState({ teamOpen: true, teamPick: undefined }),
           saveTeamPick: () => this.saveTeam(pickT), teamSaveLabel: busy === 'team' ? 'Saving…' : 'Save',
           teamSkipLabel: myTeam || this.state.teamOpen ? 'Cancel' : 'Not now',
