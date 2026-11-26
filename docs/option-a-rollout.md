@@ -22,7 +22,7 @@ Not in Option A: tie games still count for the away team, and the tiebreaker gam
 1. Open the live league Sheet.
 2. **File → Version history → Name current version** → `Before Option A — <today's date>`. This is your one-click restore point.
 3. **File → Download → Microsoft Excel (.xlsx)**. Keep the file somewhere off Google (it holds PINs, keep it private).
-4. **Extensions → Apps Script → Deploy → Manage deployments**. Note the active deployment's **Version** number (e.g. "Version 14"). That is what you roll back to.
+4. **Extensions → Apps Script → Deploy → Manage deployments**. Note the active deployment's **Version** number. **Live is on Version 11** (untitled) as of this rollout. That is what you roll back to.
 
 ## 2. Make the test copy (10 min)
 
@@ -31,7 +31,7 @@ Not in Option A: tie games still count for the away team, and the tiebreaker gam
 3. In the copy: **Extensions → Apps Script**. Replace all of `Code.gs` with the new version from this branch (`apps-script/Code.gs`). Save.
 4. Function dropdown → **setup** → **Run**. Approve permissions. (It only adds missing tabs/settings. The new `team` column header appears the first time the Players tab is read.)
 5. **Deploy → New deployment → Web app**. Execute as **Me**, access **Anyone**. Deploy and copy the URL ending in `/exec`.
-6. Send me that URL. I build `wyo-test/index.html` from it (`python3 tools/make_test_page.py <url>`). The test page shows a red **TEST** tag and uses its own browser storage, so it can't mix with the real page.
+6. Send me that URL. Test deployment: `https://script.google.com/macros/s/AKfycbzh7_dY0xJqpxkQlcR327rXtlGtkF6HajQH_QP3iubGBzmDisAuT_1X34g94GeV8kws/exec`. I build `wyo-test/index.html` from it (`python3 tools/make_test_page.py <url>`). The test page shows a red **TEST** tag and uses its own browser storage, so it can't mix with the real page.
 
 ## 3. Test (20 min, phone + laptop)
 
@@ -65,7 +65,7 @@ No game should be locked or in progress (after Monday night's final, before Thur
 
 ## 5. Roll back (if something's wrong)
 
-- **Server**: Deploy → Manage deployments → ✏️ → pick the version number you wrote down in step 1.4 → Deploy. To also roll back the hourly jobs, paste the old `Code.gs` back (Apps Script → **Project history**/version list, or `git show main:apps-script/Code.gs`) and Save.
+- **Server**: Deploy → Manage deployments → ✏️ → pick **Version 11** (the pre-Option A version) → Deploy. To also roll back the hourly jobs, paste the old `Code.gs` back (Apps Script → **Project history**/version list, or `git show main:apps-script/Code.gs`) and Save.
 - **Page**: tell me and I revert the merge on `main`.
 - **Data** (last resort): Version history → restore `Pre-go-live`. Picks made after that point are lost, so only for real damage.
 
